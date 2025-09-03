@@ -141,7 +141,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${className}`}
+      className={`w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${className}`}
     >
       <div className="w-full flex h-12 items-center px-4">
         {/* Left section: App Title */}

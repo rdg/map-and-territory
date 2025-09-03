@@ -65,7 +65,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
   };
 
   return (
-    <div className={`h-6 border-t bg-muted/30 text-xs flex items-center px-3 gap-4 ${className}`}>
+    <div data-testid="status-bar" className={`h-6 border-t bg-muted/30 text-xs flex items-center px-3 gap-4 ${className}`}>
       {/* Active Tool */}
       <div className="flex items-center gap-1">
         <span className="font-medium">Tool:</span>

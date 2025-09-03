@@ -88,7 +88,7 @@ AppLayout (SidebarProvider)
 ```tsx
 <div className="w-full flex h-12 items-center px-4">
   <div className="flex items-center gap-3">
-    <h1>Map & Territory</h1>
+    <h1>Map and Territory</h1>
   </div>
   <div className="flex-1" />
   <UserDropdown />
