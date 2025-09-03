@@ -17,6 +17,23 @@ describe('Project Store Maps', () => {
     expect(m.paper.color).toBeTypeOf('string');
   });
 
+  it('seeds base layers on map add and enforces policies', () => {
+    useProjectStore.getState().createEmpty({ name: 'Camp', description: '' });
+    useProjectStore.getState().addMap({ name: 'Map 2', description: '' });
+    const current = useProjectStore.getState().current!;
+    const map = current.maps.find((m) => m.name === 'Map 2')!;
+    expect(map.layers && map.layers.length).toBeGreaterThanOrEqual(2);
+    const paper = map.layers!.find((l) => l.type === 'paper')!;
+    const hex = map.layers!.find((l) => l.type === 'hexgrid')!;
+    // cannot duplicate base layers
+    const dupPaper = useProjectStore.getState().duplicateLayer(paper.id);
+    expect(dupPaper).toBeNull();
+    // cannot delete base layers
+    useProjectStore.getState().removeLayer(hex.id);
+    const stillHex = useProjectStore.getState().current!.maps.find((m) => m.name === 'Map 2')!.layers!.find((l) => l.type === 'hexgrid');
+    expect(stillHex).toBeTruthy();
+  });
+
   it('renames and deletes a map', () => {
     useProjectStore.getState().createEmpty({ name: 'Camp', description: '' });
     const id = useProjectStore.getState().addMap({ name: 'Old', description: '' });

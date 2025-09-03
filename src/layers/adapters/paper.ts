@@ -15,3 +15,10 @@ export const PaperAdapter: LayerAdapter<PaperState> = {
   },
 };
 
+export const PaperType = {
+  id: 'paper',
+  title: 'Paper',
+  defaultState: { color: '#ffffff' },
+  adapter: PaperAdapter,
+  policy: { canDelete: false, canDuplicate: false, maxInstances: 1 },
+} as const;
