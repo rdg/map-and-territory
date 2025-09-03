@@ -1,4 +1,8 @@
 export default function Home() {
-  // Empty main content for layout validation (no dummy content)
-  return null;
+  // Provide tall content so main area can scroll in e2e tests
+  return (
+    <div>
+      <div className="h-[2000px]" />
+    </div>
+  );
 }
