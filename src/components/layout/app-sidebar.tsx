@@ -19,6 +19,7 @@ import { useProjectStore } from '@/stores/project';
 import { useSelectionStore } from '@/stores/selection';
 import { Button } from '@/components/ui/button';
 import { executeCommand } from '@/lib/commands';
+import { Trash, Eye, EyeOff } from 'lucide-react';
 
 // Icons for creative tools
 import {
@@ -61,6 +62,9 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   const project = useProjectStore((s) => s.current);
   const selection = useSelectionStore((s) => s.selection);
   const selectCampaign = useSelectionStore((s) => s.selectCampaign);
+  const selectMap = useSelectionStore((s) => s.selectMap);
+  const projectSelectMap = useProjectStore((s) => s.selectMap);
+  const setMapVisibility = useProjectStore((s) => s.setMapVisibility);
 
   // Return null when closed for full collapse functionality
   if (!isOpen) {
@@ -96,10 +100,44 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
               size="sm"
               variant="outline"
               onClick={() => executeCommand('app.map.new').catch(() => {})}
-              disabled
             >
-              Create Map (coming soon)
+              Create Map
             </Button>
+          </div>
+        )}
+
+        {project && project.maps.length > 0 && (
+          <div className="mt-2 space-y-1">
+            {project.maps.map((m) => (
+              <div key={m.id} className={`flex items-center justify-between gap-1 rounded px-2 py-1 ${selection.kind === 'map' && selection.id === m.id ? 'bg-accent' : 'hover:bg-accent/50'}`}>
+                <button
+                  className="flex-1 text-left truncate"
+                  onClick={() => { projectSelectMap(m.id); selectMap(m.id); }}
+                >
+                  <span className="text-sm">{m.name}</span>
+                </button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  aria-label={m.visible ? 'Hide Map' : 'Show Map'}
+                  title={m.visible ? 'Hide Map' : 'Show Map'}
+                  onClick={() => setMapVisibility(m.id, !m.visible)}
+                >
+                  {m.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  aria-label="Delete Map"
+                  title="Delete Map"
+                  onClick={() => executeCommand('app.map.delete', { id: m.id }).catch(() => {})}
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
           </div>
         )}
 

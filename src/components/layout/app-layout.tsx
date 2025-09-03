@@ -33,6 +33,7 @@ import { useProjectStore } from '@/stores/project';
 import { useSelectionStore } from '@/stores/selection';
 import { loadPlugin } from '@/plugin/loader';
 import { newCampaignManifest, newCampaignModule } from '@/plugin/builtin/new-campaign';
+import { mapCrudManifest, mapCrudModule } from '@/plugin/builtin/map-crud';
 
 import { BaseLayoutProps } from '@/types/layout';
 import { cn } from '@/lib/utils';
@@ -74,9 +75,28 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
     });
   }, []);
 
+  // Host actions for maps
+  useEffect(() => {
+    ensureCommand('host.action.newMap', async () => {
+      const id = useProjectStore.getState().addMap({ name: 'Untitled Map', description: '' });
+      useProjectStore.getState().selectMap(id);
+      useSelectionStore.getState().selectMap(id);
+    });
+    ensureCommand('host.action.deleteMap', async (payload?: any) => {
+      const id = payload?.id as string | undefined;
+      if (!id) return;
+      // MVP: simple confirm; replace with Radix dialog later
+      if (window.confirm('Delete this map? This cannot be undone.')) {
+        useProjectStore.getState().deleteMap(id);
+        useSelectionStore.getState().selectCampaign();
+      }
+    });
+  }, []);
+
   // Load built-in New Campaign plugin (registers command + toolbar contribution)
   useEffect(() => {
     loadPlugin(newCampaignManifest, newCampaignModule);
+    loadPlugin(mapCrudManifest, mapCrudModule);
   }, []);
 
   const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
