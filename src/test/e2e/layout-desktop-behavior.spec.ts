@@ -50,12 +50,8 @@ test.describe('Desktop layout behavior', () => {
   test('left scene panel scrolls independently', async ({ page }) => {
     await page.goto('/')
 
-    // Ensure scene panel is visible (toggle exists on toolbar, default is open)
-    // Target the scene panel content by the visible label 'Scene'
-    const scenePanel = page.getByText('Scene').locator('..').locator('..')
-    // Climb up to the scrollable container within the sidebar column
-    const scrollContainer = scenePanel.locator('xpath=ancestor::div[contains(@class, "flex")]//div[contains(@class, "overflow-auto")]').first()
-
+    // Ensure scene panel (campaign section) is visible and scrollable
+    const scrollContainer = page.getByTestId('scene-panel-scroll')
     await expect(scrollContainer).toBeVisible()
     const before = await scrollContainer.evaluate((el) => el.scrollTop)
     await scrollContainer.evaluate((el) => { el.scrollTop = 2000 })

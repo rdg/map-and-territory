@@ -7,13 +7,14 @@
  * Positioned below header, spans full width.
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon, FilePlus } from 'lucide-react';
 
 import { useLayoutStore } from '@/stores/layout';
+import { executeCommand, ensureCommand } from '@/lib/commands';
 
 // Creative tool icons
 import {
@@ -61,6 +62,14 @@ export const AppToolbar: React.FC = () => {
   const setActiveTool = useLayoutStore((state) => state.setActiveTool);
   const togglePropertiesPanel = useLayoutStore((state) => state.togglePropertiesPanel);
 
+  // Register minimal commands wiring for New Campaign on mount
+  useEffect(() => {
+    // Bridge command: app.campaign.new -> host.prompt.newCampaign
+    ensureCommand('app.campaign.new', async () => {
+      await executeCommand('host.prompt.newCampaign');
+    });
+  }, []);
+
   /**
    * Render tool button with tooltip
    */
@@ -90,7 +99,6 @@ export const AppToolbar: React.FC = () => {
   return (
     <div className="w-full border-b bg-background">
       <div className="flex items-center gap-2 px-3 py-2">
-        
         {/* Scene Panel Toggle */}
         <Tooltip>
           <TooltipTrigger asChild>
@@ -117,6 +125,18 @@ export const AppToolbar: React.FC = () => {
         </Tooltip>
 
         <Separator orientation="vertical" className="h-6" />
+
+        {/* Campaign Group (first group after left divider) */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 px-2"
+          onClick={() => executeCommand('app.campaign.new').catch(console.error)}
+          aria-label="New Campaign (Mod+Shift+N)"
+        >
+          <FilePlus className="mr-2 h-4 w-4" />
+          <span className="text-sm">New</span>
+        </Button>
 
         {/* Creative Tools */}
         <div className="flex items-center gap-1">

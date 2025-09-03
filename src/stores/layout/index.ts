@@ -523,34 +523,34 @@ export const useNavigationState = () =>
 /**
  * useSidebarActions - Sidebar action selectors
  */
-export const useSidebarActions = () =>
-  useLayoutStore((state) => ({
-    toggleSidebar: state.toggleSidebar,
-    setSidebarOpen: state.setSidebarOpen,
-    setSidebarVariant: state.setSidebarVariant,
-    setSidebarCollapsible: state.setSidebarCollapsible,
-  }));
+export const useSidebarActions = () => {
+  const toggleSidebar = useLayoutStore((s) => s.toggleSidebar);
+  const setSidebarOpen = useLayoutStore((s) => s.setSidebarOpen);
+  const setSidebarVariant = useLayoutStore((s) => s.setSidebarVariant);
+  const setSidebarCollapsible = useLayoutStore((s) => s.setSidebarCollapsible);
+  return { toggleSidebar, setSidebarOpen, setSidebarVariant, setSidebarCollapsible };
+};
 
 /**
  * useThemeActions - Preferences action selectors
  */
-export const useThemeActions = () =>
-  useLayoutStore((state) => ({
-    setTheme: state.setTheme,
-    setSidebarWidth: state.setSidebarWidth,
-    setPersistCollapsed: state.setPersistCollapsed,
-  }));
+export const useThemeActions = () => {
+  const setTheme = useLayoutStore((s) => s.setTheme);
+  const setSidebarWidth = useLayoutStore((s) => s.setSidebarWidth);
+  const setPersistCollapsed = useLayoutStore((s) => s.setPersistCollapsed);
+  return { setTheme, setSidebarWidth, setPersistCollapsed };
+};
 
 /**
  * useNavigationActions - Navigation action selectors
  */
-export const useNavigationActions = () =>
-  useLayoutStore((state) => ({
-    setActiveSection: state.setActiveSection,
-    setBreadcrumb: state.setBreadcrumb,
-    addBreadcrumb: state.addBreadcrumb,
-    clearBreadcrumb: state.clearBreadcrumb,
-  }));
+export const useNavigationActions = () => {
+  const setActiveSection = useLayoutStore((s) => s.setActiveSection);
+  const setBreadcrumb = useLayoutStore((s) => s.setBreadcrumb);
+  const addBreadcrumb = useLayoutStore((s) => s.addBreadcrumb);
+  const clearBreadcrumb = useLayoutStore((s) => s.clearBreadcrumb);
+  return { setActiveSection, setBreadcrumb, addBreadcrumb, clearBreadcrumb };
+};
 
 /**
  * useToolState - Creative tool state selectors
@@ -564,12 +564,12 @@ export const useToolState = () =>
 /**
  * useToolActions - Creative tool action selectors
  */
-export const useToolActions = () =>
-  useLayoutStore((state) => ({
-    setActiveTool: state.setActiveTool,
-    togglePropertiesPanel: state.togglePropertiesPanel,
-    setPropertiesPanelOpen: state.setPropertiesPanelOpen,
-  }));
+export const useToolActions = () => {
+  const setActiveTool = useLayoutStore((s) => s.setActiveTool);
+  const togglePropertiesPanel = useLayoutStore((s) => s.togglePropertiesPanel);
+  const setPropertiesPanelOpen = useLayoutStore((s) => s.setPropertiesPanelOpen);
+  return { setActiveTool, togglePropertiesPanel, setPropertiesPanelOpen };
+};
 
 /**
  * usePanelState - Panel sizing and status state selectors
@@ -584,12 +584,12 @@ export const usePanelState = () =>
 /**
  * usePanelActions - Panel sizing action selectors
  */
-export const usePanelActions = () =>
-  useLayoutStore((state) => ({
-    setScenePanelWidth: state.setScenePanelWidth,
-    setPropertiesPanelWidth: state.setPropertiesPanelWidth,
-    toggleStatusBar: state.toggleStatusBar,
-  }));
+export const usePanelActions = () => {
+  const setScenePanelWidth = useLayoutStore((s) => s.setScenePanelWidth);
+  const setPropertiesPanelWidth = useLayoutStore((s) => s.setPropertiesPanelWidth);
+  const toggleStatusBar = useLayoutStore((s) => s.toggleStatusBar);
+  return { setScenePanelWidth, setPropertiesPanelWidth, toggleStatusBar };
+};
 
 /**
  * useStatusState - Status information state selectors
@@ -603,8 +603,8 @@ export const useStatusState = () =>
 /**
  * useStatusActions - Status update action selectors
  */
-export const useStatusActions = () =>
-  useLayoutStore((state) => ({
-    setMousePosition: state.setMousePosition,
-    setSelectionCount: state.setSelectionCount,
-  }));
+export const useStatusActions = () => {
+  const setMousePosition = useLayoutStore((s) => s.setMousePosition);
+  const setSelectionCount = useLayoutStore((s) => s.setSelectionCount);
+  return { setMousePosition, setSelectionCount };
+};

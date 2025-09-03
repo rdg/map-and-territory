@@ -64,6 +64,12 @@ export interface AppAPI {
 - `app.map.new`, `app.map.delete`, `app.map.rename`, `app.map.duplicate`
 - `app.layer.add:<type>`, `app.layer.remove`, `app.layer.rename`, `app.layer.move`, `app.layer.toggleVisibility`, `app.layer.lock`
 
+## Integration Notes: Present Mode and Fog-of-War
+
+- UI Modes (ADR-0006): Introducing `edit` and `present` modes does not change Scene Tree responsibilities. In `present` mode the Scene Tree UI is hidden by layout policy, but its data and selection state remain unaffected.
+- Hex Geometry (ADR-0007): Scene operations and layer tools may rely on `AppAPI.hex` for consistent hex coordinate conversions; no direct dependency on internal store shapes.
+- Fog-of-War Plugin (ADR-0008): `fogOfWar` appears as a normal layer (defaulting to top). Users can toggle visibility/lock and reorder it via the Scene Tree. No special pinning is required; defaults suffice.
+
 ## Persistence
 
 - Project JSON persists maps array, activeMapId, layers with type and state.
@@ -93,4 +99,3 @@ export interface AppAPI {
 - Scene/Layer Services: map lifecycle, active selection, layer CRUD, ordering.
 - Persistence: project schema updates and migrations.
 - Commands: register commands and toolbar bindings (e.g., scene toolgroup buttons).
-

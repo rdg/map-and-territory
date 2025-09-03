@@ -7,6 +7,7 @@
 
 import { useEffect } from 'react';
 import { useLayoutStore, useToolActions } from '@/stores/layout';
+import { executeCommand } from '@/lib/commands';
 
 const TOOL_SHORTCUTS: Record<string, string> = {
   '1': 'select',
@@ -41,6 +42,15 @@ export const useKeyboardShortcuts = () => {
       if (event.key === 'F2') {
         event.preventDefault();
         togglePropertiesPanel();
+        return;
+      }
+
+      // New Campaign: Mod+Shift+N
+      const isMac = typeof navigator !== 'undefined' && navigator.platform.toUpperCase().includes('MAC');
+      const mod = isMac ? event.metaKey : event.ctrlKey;
+      if (mod && event.shiftKey && (event.key === 'N' || event.key === 'n')) {
+        event.preventDefault();
+        executeCommand('app.campaign.new').catch(console.error);
         return;
       }
 
