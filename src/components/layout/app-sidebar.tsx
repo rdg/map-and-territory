@@ -64,8 +64,10 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   className = '',
 }) => {
   const isOpen = useLayoutStore((state) => state.isOpen);
-  const variant = useLayoutStore((state) => state.variant);
-  const collapsible = useLayoutStore((state) => state.collapsible);
+  // Force non-fixed sidebar rendering to participate in PanelGroup layout
+  // regardless of the global sidebar variant/collapsible settings
+  const variant: 'sidebar' | 'inset' = 'sidebar';
+  const collapsible: 'icon' | 'none' = 'none';
 
   // Return null when closed for full collapse functionality
   if (!isOpen) {
@@ -76,7 +78,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
     <Sidebar
       variant={variant}
       collapsible={collapsible}
-      className={className}
+      className={`h-full ${className}`}
     >
       {/* Scene View Header */}
       <SidebarHeader className="border-b">

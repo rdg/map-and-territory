@@ -16,7 +16,7 @@
  */
 
 import React from 'react';
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 
@@ -61,62 +61,63 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
   return (
     <TooltipProvider>
       <SidebarProvider>
-        <div className={cn('flex min-h-screen w-full', className)}>
-          <PanelGroup direction="horizontal">
-            {/* Scene Panel (Resizable Sidebar) */}
-            {isOpen && (
-              <Panel 
-                id="scene-panel"
-                defaultSize={20} 
-                minSize={15} 
-                maxSize={30}
-                onResize={(size) => {
-                  // Convert percentage to pixels (rough approximation)
-                  const width = Math.round((size / 100) * window.innerWidth);
-                  setScenePanelWidth(width);
-                }}
+        <div className={cn('flex min-h-screen w-full flex-col', className)}>
+          {/* Global Header spans full viewport width */}
+          <AppHeader />
+          {/* Global Toolbar spans full viewport width */}
+          <AppToolbar />
+
+          {/* Main editor area with resizable panels */}
+          <div className="flex flex-1 min-h-0">
+            <PanelGroup direction="horizontal">
+              {/* Scene Panel (Resizable) */}
+              {isOpen && (
+                <Panel
+                  id="scene-panel"
+                  defaultSize={20}
+                  minSize={15}
+                  maxSize={30}
+                  onResize={(size) => {
+                    const width = Math.round((size / 100) * window.innerWidth);
+                    setScenePanelWidth(width);
+                  }}
+                >
+                  <AppSidebar />
+                </Panel>
+              )}
+
+              {/* Resize handle for scene panel */}
+              {isOpen && (
+                <PanelResizeHandle className="w-1 bg-border hover:bg-accent transition-colors" />
+              )}
+
+              {/* Center content + optional properties panel */}
+              <Panel
+                minSize={50}
+                // Provide a default size to avoid SSR layout shift
+                defaultSize={isOpen ? 80 : 100}
               >
-                <AppSidebar />
-              </Panel>
-            )}
-            
-            {/* Resize handle for scene panel */}
-            {isOpen && (
-              <PanelResizeHandle className="w-1 bg-border hover:bg-accent transition-colors" />
-            )}
-
-            {/* Main Content Area */}
-            <Panel minSize={50}>
-              <SidebarInset className="flex flex-col flex-1 min-w-0">
-                {/* Application Header */}
-                <AppHeader />
-
-                {/* Creative Tool Toolbar */}
-                <AppToolbar />
-
-                {/* Main Content Area with Resizable Properties Panel */}
                 <div className="flex flex-1 min-h-0">
                   <PanelGroup direction="horizontal">
-                    {/* Main Content */}
-                    <Panel minSize={40}>
+                    <Panel
+                      minSize={40}
+                      // Provide a default size; complement of properties panel when open
+                      defaultSize={propertiesPanelOpen ? 75 : 100}
+                    >
                       <MainContent className="h-full">
                         {children}
                       </MainContent>
                     </Panel>
-                    
-                    {/* Properties Panel (Conditional Resizable) */}
+
                     {propertiesPanelOpen && (
                       <>
-                        {/* Resize handle for properties panel */}
                         <PanelResizeHandle className="w-1 bg-border hover:bg-accent transition-colors" />
-                        
-                        <Panel 
+                        <Panel
                           id="properties-panel"
                           defaultSize={25}
                           minSize={20}
                           maxSize={35}
                           onResize={(size) => {
-                            // Convert percentage to pixels (rough approximation)
                             const width = Math.round((size / 100) * window.innerWidth);
                             setPropertiesPanelWidth(width);
                           }}
@@ -129,12 +130,12 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
                     )}
                   </PanelGroup>
                 </div>
-                
-                {/* Status Bar */}
-                {statusBarVisible && <StatusBar />}
-              </SidebarInset>
-            </Panel>
-          </PanelGroup>
+              </Panel>
+            </PanelGroup>
+          </div>
+
+          {/* Status Bar spanning full width at bottom */}
+          {statusBarVisible && <StatusBar />}
         </div>
       </SidebarProvider>
     </TooltipProvider>
