@@ -15,7 +15,7 @@
  * - Accessibility compliance and keyboard navigation
  */
 
-import React from 'react';
+import React, { useEffect, useMemo, useRef, useCallback } from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
@@ -54,9 +54,45 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
   const propertiesPanelOpen = useLayoutStore((state) => state.propertiesPanelOpen);
   const setScenePanelWidth = useLayoutStore((state) => state.setScenePanelWidth);
   const setPropertiesPanelWidth = useLayoutStore((state) => state.setPropertiesPanelWidth);
+  const scenePanelWidthPx = useLayoutStore((state) => state.scenePanelWidth);
+  const propsPanelWidthPx = useLayoutStore((state) => state.propertiesPanelWidth);
   
-  // TODO: Enable keyboard shortcuts
+  // Keyboard shortcuts temporarily disabled until post-SSR mount
   // useKeyboardShortcuts();
+
+  const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 0;
+
+  // Keep last known percentages in refs (restored on expand)
+  const scenePctRef = useRef<number>(20);
+  const propsPctRef = useRef<number>(25);
+
+  // Initialize refs from persisted pixel widths (client-side)
+  useEffect(() => {
+    if (!vw) return;
+    if (scenePanelWidthPx) {
+      scenePctRef.current = clamp(Math.round((scenePanelWidthPx / vw) * 100), 15, 30);
+    }
+    if (propsPanelWidthPx) {
+      propsPctRef.current = clamp(Math.round((propsPanelWidthPx / vw) * 100), 20, 35);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scenePanelWidthPx, propsPanelWidthPx, vw]);
+
+  // Controlled layout that adapts to which panels are present
+  // We will conditionally render side panels; main fills remaining space naturally.
+
+  // Initial defaults (also used to silence SSR warning about defaultSize)
+  const initialScene = scenePctRef.current;
+  const initialProps = propsPctRef.current;
+  const initialMain = useMemo(() => {
+    const s = isOpen ? initialScene : 0;
+    const p = propertiesPanelOpen ? initialProps : 0;
+    return clamp(100 - s - p, 40, 100);
+  }, [isOpen, propertiesPanelOpen, initialScene, initialProps]);
+
+  // Persist sizes when layout changes (drag end or normalization)
+  const handleLayout = undefined;
   
   return (
     <TooltipProvider>
@@ -68,24 +104,29 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
           <AppToolbar />
 
           {/* Row 3: Main editor area; only this row scrolls its own content */}
-          <div className="min-h-0 overflow-hidden">
+          <div className="min-h-0 min-w-0 overflow-hidden">
             {/* Provide explicit height to panels via h-full */}
-            <PanelGroup direction="horizontal" className="h-full">
+            <PanelGroup
+              key={`pg-${isOpen ? 'L' : 'l'}-${propertiesPanelOpen ? 'R' : 'r'}`}
+              direction="horizontal"
+              className="h-full w-full"
+            >
               {/* Scene Panel (Resizable) */}
               {isOpen && (
                 <Panel
                   id="scene-panel"
                   order={1}
-                  defaultSize={20}
+                  defaultSize={initialScene}
                   minSize={15}
                   maxSize={30}
                   className="min-h-0"
                   onResize={(size) => {
+                    if (typeof window === 'undefined') return;
                     const width = Math.round((size / 100) * window.innerWidth);
-                    setScenePanelWidth(width);
+                    const prev = useLayoutStore.getState().scenePanelWidth;
+                    if (Math.abs(width - prev) >= 4) setScenePanelWidth(width);
                   }}
                 >
-                  {/* Ensure internal column manages its own scroll */}
                   <div className="h-full min-h-0">
                     <AppSidebar />
                   </div>
@@ -94,19 +135,23 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
 
               {/* Resize handle for scene panel */}
               {isOpen && (
-                <PanelResizeHandle className="w-1 bg-border hover:bg-accent transition-colors" />
+                <PanelResizeHandle
+                  className="w-1 bg-border hover:bg-accent transition-colors"
+                  aria-label="Resize scene and main panels"
+                  aria-controls="scene-panel main-panel"
+                />
               )}
 
               {/* Main Panel */}
               <Panel
                 id="main-panel"
                 order={2}
-                minSize={40}
-                defaultSize={propertiesPanelOpen ? (isOpen ? 60 : 75) : (isOpen ? 80 : 100)}
+                minSize={0}
+                defaultSize={initialMain}
                 className="min-h-0"
               >
                 <div className="h-full min-h-0 flex flex-col">
-                  <MainContent scrollable>
+                  <MainContent scrollable padding="none" className="bg-green-50">
                     {children}
                   </MainContent>
                 </div>
@@ -114,27 +159,33 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
 
               {/* Properties Panel (Resizable) */}
               {propertiesPanelOpen && (
-                <>
-                  <PanelResizeHandle className="w-1 bg-border hover:bg-accent transition-colors" />
-                  <Panel
-                    id="properties-panel"
-                    order={3}
-                    defaultSize={25}
-                    minSize={20}
-                    maxSize={35}
-                    className="min-h-0"
-                    onResize={(size) => {
-                      const width = Math.round((size / 100) * window.innerWidth);
-                      setPropertiesPanelWidth(width);
-                    }}
-                  >
-                    <AuthErrorBoundary>
-                      <div className="h-full min-h-0">
-                        <PropertiesPanel />
-                      </div>
-                    </AuthErrorBoundary>
-                  </Panel>
-                </>
+                <PanelResizeHandle
+                  className="w-1 bg-border hover:bg-accent transition-colors"
+                  aria-label="Resize main and properties panels"
+                  aria-controls="main-panel properties-panel"
+                />
+              )}
+              {propertiesPanelOpen && (
+                <Panel
+                  id="properties-panel"
+                  order={3}
+                  defaultSize={initialProps}
+                  minSize={20}
+                  maxSize={35}
+                  className="min-h-0"
+                  onResize={(size) => {
+                    if (typeof window === 'undefined') return;
+                    const width = Math.round((size / 100) * window.innerWidth);
+                    const prev = useLayoutStore.getState().propertiesPanelWidth;
+                    if (Math.abs(width - prev) >= 4) setPropertiesPanelWidth(width);
+                  }}
+                >
+                  <AuthErrorBoundary>
+                    <div className="h-full min-h-0">
+                      <PropertiesPanel />
+                    </div>
+                  </AuthErrorBoundary>
+                </Panel>
               )}
             </PanelGroup>
           </div>
