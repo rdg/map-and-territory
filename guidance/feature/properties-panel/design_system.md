@@ -1,22 +1,21 @@
 # Property Panel Design System
 
 ## Overview
-**Purpose:** Generic property panel for engineering applications that connects to item stores and dynamically populates with various data shapes
-**Scope:** Parameter components, folder grouping, multi-selection support, read-only/readwrite modes
-**Target Users:** Engineers, technical users working with configuration and data management
+**Purpose:** Property panel for Map&Territory (hexmap editor) that connects to item stores and dynamically populates with map/layer/tool parameters. Balances a professional UI with gritty, analog content outputs.
+**Scope:** Parameter components, folder grouping, multi-selection support, read-only/readwrite modes. Extensible via the plugin architecture.
+**Target Users:** Game masters and creators (see guidance/personas.md) working with campaigns, maps, layers, and tools.
 
 ## Design Specifications
 
 ### Visual Hierarchy
-- **Panel Container:** Clean white background with subtle borders
-- **Folder Groups:** Collapsible sections with clear visual separation
-- **Parameters:** Consistent spacing and alignment with clear labels
-- **States:** Distinct visual treatment for read-only, error, and disabled states
-- **Color Palette:** 
-  - Primary: Neutral grays (#F8F9FA, #E9ECEF, #6C757D, #343A40)
-  - Accent: Orange (#FF6B35 for active states, selections)
-  - Error: Red (#DC3545)
-  - Success: Green (#28A745)
+- **Panel Container:** Professional, quiet surface; subtle borders. UI recedes to let map content shine (see Product Brief).
+- **Folder Groups:** Collapsible sections with clear separation for Layers, Tools, Effects, Metadata.
+- **Parameters:** Consistent spacing and alignment with clear labels and optional descriptions.
+- **States:** Distinct treatment for read-only, error, and disabled.
+- **Color Palette:** Use theme tokens rather than fixed hex. Suggested baseline aligns with shadcn tokens:
+  - Surface/Border: Neutral grays (tokens: background, input, border)
+  - Primary Accent: theme primary (used sparingly for focus/selection)
+  - Error/Success: tokens destructive/success
 
 ### Component Structure
 ```
@@ -29,17 +28,16 @@ PropertyPanel
 └── DescriptionText (optional)
 ```
 
-### Parameter Types
-1. **Text Input** - Single/multi-line text fields
-2. **Number Input** - Integer/float with validation
-3. **Boolean Toggle** - Checkbox or toggle switch
-4. **Dropdown Select** - Single selection from options
-5. **Multi-Select** - Multiple selections with chips
-6. **Slider** - Numeric range selection
-7. **Color Picker** - Color selection with hex/rgb values
-8. **File Path** - Path selection with browse button
-9. **Image Display** - URL-based image preview
-10. **Date/Time** - Date and time selection
+### Parameter Types (MVP-aligned)
+1. **Text Input** — Single/multi-line text for names, notes.
+2. **Number Input (1D/2D/3D)** — Integer/float with validation (e.g., hex size, offset vectors).
+3. **Boolean** — Checkbox for toggles (e.g., snap to grid).
+4. **Dropdown Select** — Enumerations (e.g., brush mode, tile material).
+5. **Color Picker** — Hex color for inks/overlays.
+6. **Texture Swatch (SVG/Pattern)** — Select small SVG textures/patterns used for tiles/brushes; preview as swatch.
+7. (Deferred) **Multi-Select** — For tags or layered selections.
+8. (Deferred) **Slider** — Numeric ranges; not used in MVP to avoid adding complexity.
+9. (Deferred) **Date/Time, File Path, External Images** — Not core to MVP. Images are represented as textures/patterns rather than arbitrary URLs.
 
 ### Responsive Behavior
 - **Minimum Width:** 280px
@@ -79,16 +77,15 @@ interface FolderGroup {
 }
 ```
 
-### ShadCN Component Mapping
-- **Panel Container:** `Card` component
-- **Folder Headers:** `Collapsible` with `Button` trigger
-- **Text Inputs:** `Input` component
-- **Number Inputs:** `Input` with type="number"
-- **Toggles:** `Switch` component
-- **Dropdowns:** `Select` component
-- **Multi-Select:** `Command` with `Checkbox`
-- **Sliders:** `Slider` component
-- **Tooltips:** `Tooltip` for descriptions and errors
+### Component Mapping (Current Library)
+- **Panel Container/Groups:** use existing `Group` + `Separator` (upgrade to collapsible folders later).
+- **Labels/Help:** `PropertyLabel` with optional description; `Tooltip` for overflow or extra help.
+- **Text Inputs:** `Input`, `Textarea`.
+- **Number Inputs:** `Int1D/2D/3D`, `Float1D/2D/3D` (no sliders yet).
+- **Boolean:** `CheckboxField` (toggle switch can come later).
+- **Dropdowns:** `SelectField`.
+- **Color:** `ColorField` (hex; consider alpha later).
+- **Texture Swatch:** small SVG preview + select (to be added when textures are available in the asset store).
 
 ### State Management
 ```typescript
@@ -123,8 +120,8 @@ const [parameterErrors, setParameterErrors] = useState({});
 ### Component Dependencies
 - **FolderGroup** → Parameter components
 - **Parameter** → Input components, validation utilities
-- **ImageParameter** → Image loading and error handling
-- **MultiSelectParameter** → Chip display, selection management
+- **TextureParameter** → SVG/pattern catalog and preview
+- **MultiSelectParameter (deferred)** → Chip display, selection management
 
 ### Accessibility Features
 - **Keyboard Navigation:** Tab order through parameters
@@ -153,19 +150,17 @@ const [parameterErrors, setParameterErrors] = useState({});
 - **Validation:** Real-time or on blur/submit
 - **Recovery:** Clear errors when valid input provided
 
-### Image Parameter
-- **Display:** Thumbnail preview with aspect ratio preservation
-- **Placeholder:** Default image for empty URLs
-- **Error Handling:** Broken image fallback
-- **Loading:** Spinner during image load
+### Texture Swatch Parameter
+- **Display:** Small SVG/pattern preview swatch
+- **Source:** Internal asset catalog (not external URLs)
+- **Selection:** Dropdown or grid picker with search/filter
+- **Fallback:** Neutral pattern if missing
 
 ### Multi-Selection Support
 - **Chips:** Selected items as removable chips
 - **Dropdown:** Searchable list with checkboxes
 - **Bulk Actions:** Select all/none options
 - **Overflow:** Scroll or collapse for many selections
-
-## Validation & Testing
 
 ## Validation & Testing
 
@@ -178,23 +173,23 @@ const [parameterErrors, setParameterErrors] = useState({});
 
 ### Testing Approach
 - **Unit Tests:** Individual parameter components and search functionality
-- **Integration Tests:** Data binding, bulk operations, and comparison mode
-- **Accessibility Tests:** Screen reader compatibility and keyboard navigation
-- **Visual Regression:** Component appearance consistency across themes
-- **Usability Testing:** Task-based scenarios with diverse data structures (user, triangle, utility pole, file)
+- **Integration Tests:** Data binding (to stores), bulk operations, and multi-selection editing
+- **Accessibility Tests:** Screen reader labels, keyboard navigation, focus states
+- **Visual Regression:** Appearance consistency across themes
+- **Usability Testing:** Task-based scenarios for map/layer/tool editing
 
 ### POC Validation Scenarios
-1. **Single Item Display:** Show user profile with all parameter types
-2. **Multi-selection Comparison:** Compare two utility poles side-by-side
-3. **Bulk Operations:** Select multiple triangle parameters and reset values
-4. **Search Functionality:** Find specific file metadata across folders
-5. **Theme Switching:** Toggle between light and dark modes during use
-6. **Child Properties:** Expand maintenance photos in utility pole data
-7. **Read-only Mode:** Toggle triangle calculated values between modes
-8. **Error States:** Trigger validation errors on number inputs
-9. **Panel Resizing:** Drag panel from minimum to maximum width, test parameter reflow
-10. **Copy/Paste Operations:** Copy parameters between folders, paste values between compatible types
-11. **Clipboard Integration:** Copy/paste values to/from external applications
+1. **Single Map Item:** Edit a tile’s parameters (color, texture, tags) with validation.
+2. **Multi-Selection:** Select multiple hexes and adjust shared parameters (e.g., material).
+3. **Bulk Operations:** Reset values across selected hexes/layers.
+4. **Search Parameters:** Find specific layer/tile attributes quickly.
+5. **Theme Switching:** Toggle light/dark while editing without visual regressions.
+6. **Layer Child Props:** Expand layer effects (noise/FBM settings) as child parameters.
+7. **Read-only Mode:** Show derived values (e.g., computed density) as read-only.
+8. **Error States:** Trigger/resolve validation on number inputs (ranges, ints-only).
+9. **Panel Resizing:** Drag panel across min→max, confirm reflow and readability.
+10. **Copy/Paste:** Copy parameters between compatible tiles/layers.
+11. **Clipboard:** Copy color/texture tokens to external apps.
 
 ### Iteration Plan
 1. **Phase 1:** Core parameter types and folder grouping
@@ -204,12 +199,11 @@ const [parameterErrors, setParameterErrors] = useState({});
 5. **Phase 5:** Multi-panel coordination and state synchronization
 
 ## Implementation Priority
-1. **Folder Groups** - Collapsible containers
-2. **Basic Parameters** - Text, number, boolean, dropdown
-3. **Description Text** - Inline documentation
-4. **Read-Only Mode** - State toggle functionality
-5. **Error States** - Validation and error display
-6. **Image Parameter** - URL-based image display
-7. **Multi-Select** - Complex selection handling
-8. **Advanced Parameters** - Slider, color picker, date/time
-
+1. **Folder Groups** — Collapsible containers
+2. **Basic Parameters** — Text, number (1/2/3D), boolean, dropdown, color
+3. **Description Text** — Inline documentation and tooltips
+4. **Read-Only Mode** — State toggle functionality
+5. **Error States** — Validation and error display
+6. **Texture Swatch** — SVG/pattern picker and preview
+7. **Multi-Select (deferred)** — Complex selection handling
+8. **Advanced (deferred)** — Sliders, date/time
