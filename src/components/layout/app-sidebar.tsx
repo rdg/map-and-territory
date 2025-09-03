@@ -1,3 +1,4 @@
+
 'use client';
 
 /**
@@ -9,18 +10,7 @@
 
 import React from 'react';
 
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent,
-} from '@/components/ui/sidebar';
+// Render custom lightweight sidebar to work inside PanelGroup without fixed positioning
 import { Separator } from '@/components/ui/separator';
 
 import { useLayoutStore } from '@/stores/layout';
@@ -64,10 +54,6 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   className = '',
 }) => {
   const isOpen = useLayoutStore((state) => state.isOpen);
-  // Force non-fixed sidebar rendering to participate in PanelGroup layout
-  // regardless of the global sidebar variant/collapsible settings
-  const variant: 'sidebar' | 'inset' = 'sidebar';
-  const collapsible: 'icon' | 'none' = 'none';
 
   // Return null when closed for full collapse functionality
   if (!isOpen) {
@@ -75,21 +61,13 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   }
 
   return (
-    <Sidebar
-      variant={variant}
-      collapsible={collapsible}
-      className={`h-full ${className}`}
-    >
-      {/* Scene View Header */}
-      <SidebarHeader className="border-b">
+    <div className={`h-full w-full flex flex-col border-r ${className}`}>
+      {/* Header */}
+      <div className="border-b">
         <div className="flex items-center gap-2 p-3">
-          {isOpen && (
-            <>
-              <Layers className="h-4 w-4" />
-              <span className="font-medium text-sm">Scene</span>
-            </>
-          )}
-          <span 
+          <Layers className="h-4 w-4" />
+          <span className="font-medium text-sm">Scene</span>
+          <span
             className="inline-flex items-center justify-center ml-auto h-6 w-6 rounded hover:bg-accent cursor-pointer"
             onClick={() => {
               // Handle add new scene
@@ -98,74 +76,65 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
             <Plus className="h-3 w-3" />
           </span>
         </div>
-      </SidebarHeader>
+      </div>
 
-      {/* Scene Content */}
-      <SidebarContent className="p-2">
-        {/* Current Map */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="px-2 py-1 text-xs">Maps</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {MOCK_SCENES.map((scene) => (
-                <SidebarMenuItem key={scene.id}>
-                  <SidebarMenuButton
-                    isActive={scene.active}
-                    className="justify-between"
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-auto p-2">
+        {/* Maps */}
+        <div className="mb-2">
+          <div className="px-2 py-1 text-xs text-muted-foreground">Maps</div>
+          <ul className="flex w-full min-w-0 flex-col gap-1">
+            {MOCK_SCENES.map((scene) => (
+              <li key={scene.id} className="group relative">
+                <button
+                  className={`flex w-full items-center justify-between rounded-md p-2 text-left text-sm hover:bg-accent ${scene.active ? 'bg-accent font-medium' : ''}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Map className="h-4 w-4" />
+                    <span className="truncate">{scene.name}</span>
+                  </div>
+                  <span
+                    className="inline-flex items-center justify-center h-4 w-4 rounded hover:bg-accent cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // More options
+                    }}
                   >
-                    <div className="flex items-center gap-2">
-                      <Map className="h-4 w-4" />
-                      <span className="text-sm">{scene.name}</span>
-                    </div>
-                    <span 
-                      className="inline-flex items-center justify-center h-4 w-4 rounded hover:bg-accent cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Handle more options menu
-                      }}
-                    >
-                      <MoreHorizontal className="h-3 w-3" />
-                    </span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                    <MoreHorizontal className="h-3 w-3" />
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
 
         <Separator className="my-2" />
 
         {/* Layers */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="px-2 py-1 text-xs">Layers</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {MOCK_SCENES[0]?.layers.map((layer) => (
-                <SidebarMenuItem key={layer.id}>
-                  <SidebarMenuButton className="justify-between">
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className={`h-2 w-2 rounded-full ${
-                          layer.visible ? 'bg-green-500' : 'bg-gray-300'
-                        }`} 
-                      />
-                      <span className="text-sm">{layer.name}</span>
-                    </div>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-
-      {/* Scene Footer */}
-      <SidebarFooter className="border-t p-2">
-        <div className="text-xs text-muted-foreground px-2">
-          {isOpen ? 'Hexmap Editor' : ''}
+        <div>
+          <div className="px-2 py-1 text-xs text-muted-foreground">Layers</div>
+          <ul className="flex w-full min-w-0 flex-col gap-1">
+            {MOCK_SCENES[0]?.layers.map((layer) => (
+              <li key={layer.id}>
+                <button className="flex w-full items-center justify-between rounded-md p-2 text-left text-sm hover:bg-accent">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`h-2 w-2 rounded-full ${layer.visible ? 'bg-green-500' : 'bg-gray-300'}`}
+                    />
+                    <span className="truncate">{layer.name}</span>
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
-      </SidebarFooter>
-    </Sidebar>
+      </div>
+
+      {/* Footer */}
+      <div className="border-t p-2">
+        <div className="text-xs text-muted-foreground px-2">Hexmap Editor</div>
+      </div>
+    </div>
   );
 };
 

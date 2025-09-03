@@ -41,8 +41,8 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   }
   
   return (
-    <div className={`w-80 border-l bg-background transition-all duration-200 ${className}`}>
-      <div className="p-4 space-y-4">
+    <div className={`h-full w-full border-l bg-background ${className}`}>
+      <div className="p-4 space-y-4 h-full overflow-auto">
         {/* Tool Header */}
         <div className="flex items-center gap-2">
           <MousePointer2 className="h-4 w-4" />
