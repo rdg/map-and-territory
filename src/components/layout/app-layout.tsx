@@ -18,6 +18,7 @@
 import React from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 
 import AppHeader from './app-header';
 import AppSidebar from './app-sidebar';
@@ -25,10 +26,12 @@ import AppToolbar from './app-toolbar';
 import PropertiesPanel from './properties-panel-simple';
 import MainContent from './main-content';
 import { AuthErrorBoundary } from '../providers/auth-provider';
+import StatusBar from './status-bar';
 // import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 
 import { BaseLayoutProps } from '@/types/layout';
 import { cn } from '@/lib/utils';
+import { useLayoutStore } from '@/stores/layout';
 
 // ============================================================================
 // AppLayout Component
@@ -46,6 +49,12 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
   children,
   className = '',
 }) => {
+  const isOpen = useLayoutStore((state) => state.isOpen);
+  const statusBarVisible = useLayoutStore((state) => state.statusBarVisible);
+  const propertiesPanelOpen = useLayoutStore((state) => state.propertiesPanelOpen);
+  const setScenePanelWidth = useLayoutStore((state) => state.setScenePanelWidth);
+  const setPropertiesPanelWidth = useLayoutStore((state) => state.setPropertiesPanelWidth);
+  
   // TODO: Enable keyboard shortcuts
   // useKeyboardShortcuts();
   
@@ -53,27 +62,79 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
     <TooltipProvider>
       <SidebarProvider>
         <div className={cn('flex min-h-screen w-full', className)}>
-          {/* Application Sidebar */}
-          <AppSidebar />
+          <PanelGroup direction="horizontal">
+            {/* Scene Panel (Resizable Sidebar) */}
+            {isOpen && (
+              <Panel 
+                id="scene-panel"
+                defaultSize={20} 
+                minSize={15} 
+                maxSize={30}
+                onResize={(size) => {
+                  // Convert percentage to pixels (rough approximation)
+                  const width = Math.round((size / 100) * window.innerWidth);
+                  setScenePanelWidth(width);
+                }}
+              >
+                <AppSidebar />
+              </Panel>
+            )}
+            
+            {/* Resize handle for scene panel */}
+            {isOpen && (
+              <PanelResizeHandle className="w-1 bg-border hover:bg-accent transition-colors" />
+            )}
 
-          {/* Main Content Area */}
-          <SidebarInset className="flex flex-col flex-1 min-w-0">
-            {/* Application Header */}
-            <AppHeader />
+            {/* Main Content Area */}
+            <Panel minSize={50}>
+              <SidebarInset className="flex flex-col flex-1 min-w-0">
+                {/* Application Header */}
+                <AppHeader />
 
-            {/* Creative Tool Toolbar */}
-            <AppToolbar />
+                {/* Creative Tool Toolbar */}
+                <AppToolbar />
 
-            {/* Main Content Area with Properties Panel */}
-            <div className="flex flex-1 min-h-0">
-              <MainContent className="flex-1">
-                {children}
-              </MainContent>
-              <AuthErrorBoundary>
-                <PropertiesPanel />
-              </AuthErrorBoundary>
-            </div>
-          </SidebarInset>
+                {/* Main Content Area with Resizable Properties Panel */}
+                <div className="flex flex-1 min-h-0">
+                  <PanelGroup direction="horizontal">
+                    {/* Main Content */}
+                    <Panel minSize={40}>
+                      <MainContent className="h-full">
+                        {children}
+                      </MainContent>
+                    </Panel>
+                    
+                    {/* Properties Panel (Conditional Resizable) */}
+                    {propertiesPanelOpen && (
+                      <>
+                        {/* Resize handle for properties panel */}
+                        <PanelResizeHandle className="w-1 bg-border hover:bg-accent transition-colors" />
+                        
+                        <Panel 
+                          id="properties-panel"
+                          defaultSize={25}
+                          minSize={20}
+                          maxSize={35}
+                          onResize={(size) => {
+                            // Convert percentage to pixels (rough approximation)
+                            const width = Math.round((size / 100) * window.innerWidth);
+                            setPropertiesPanelWidth(width);
+                          }}
+                        >
+                          <AuthErrorBoundary>
+                            <PropertiesPanel />
+                          </AuthErrorBoundary>
+                        </Panel>
+                      </>
+                    )}
+                  </PanelGroup>
+                </div>
+                
+                {/* Status Bar */}
+                {statusBarVisible && <StatusBar />}
+              </SidebarInset>
+            </Panel>
+          </PanelGroup>
         </div>
       </SidebarProvider>
     </TooltipProvider>

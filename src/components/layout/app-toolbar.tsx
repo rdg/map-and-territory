@@ -11,6 +11,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { LucideIcon } from 'lucide-react';
 
 import { useLayoutStore } from '@/stores/layout';
 
@@ -54,14 +55,16 @@ export const AppToolbar: React.FC = () => {
   const isOpen = useLayoutStore((state) => state.isOpen);
   const toggleSidebar = useLayoutStore((state) => state.toggleSidebar);
   
-  // TODO: Add to store - for now just use local state
-  const [activeTool, setActiveTool] = React.useState('select');
-  const [propertiesPanelOpen, setPropertiesPanelOpen] = React.useState(true);
+  // Use store state instead of local state
+  const activeTool = useLayoutStore((state) => state.activeTool);
+  const propertiesPanelOpen = useLayoutStore((state) => state.propertiesPanelOpen);
+  const setActiveTool = useLayoutStore((state) => state.setActiveTool);
+  const togglePropertiesPanel = useLayoutStore((state) => state.togglePropertiesPanel);
 
   /**
    * Render tool button with tooltip
    */
-  const renderToolButton = (tool: typeof CREATIVE_TOOLS[0] | typeof VIEW_TOOLS[0], isActive = false) => (
+  const renderToolButton = (tool: { id: string; name: string; icon: LucideIcon; shortcut: string }, isActive = false) => (
     <Tooltip key={tool.id}>
       <TooltipTrigger asChild>
         <Button
@@ -85,7 +88,7 @@ export const AppToolbar: React.FC = () => {
   );
 
   return (
-    <div className="border-b bg-background">
+    <div className="w-full border-b bg-background">
       <div className="flex items-center gap-2 px-3 py-2">
         
         {/* Scene Panel Toggle */}
@@ -142,7 +145,7 @@ export const AppToolbar: React.FC = () => {
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0"
-              onClick={() => setPropertiesPanelOpen(!propertiesPanelOpen)}
+              onClick={togglePropertiesPanel}
             >
               {propertiesPanelOpen ? (
                 <PanelRightClose className="h-4 w-4" />

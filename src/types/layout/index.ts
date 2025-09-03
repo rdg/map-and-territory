@@ -36,6 +36,22 @@ export interface LayoutState {
   preferences: LayoutPreferences;
   /** Navigation and routing state */
   navigation: NavigationState;
+  /** Creative tool state */
+  tools?: {
+    activeTool: string;
+    propertiesPanelOpen: boolean;
+  };
+  /** Panel sizing state */
+  panels?: {
+    scenePanelWidth: number;
+    propertiesPanelWidth: number;
+    statusBarVisible: boolean;
+  };
+  /** Status information */
+  status?: {
+    mousePosition: { x: number; y: number };
+    selectionCount: number;
+  };
 }
 
 /**
