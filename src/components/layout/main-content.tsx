@@ -94,8 +94,8 @@ export const MainContent: React.FC<MainContentProps> = ({
         className
       )}
     >
-      {/* Content wrapper for additional constraints if needed */}
-      <div className="h-full">
+      {/* Content wrapper - natural height; scroll when content overflows */}
+      <div className="min-h-0">
         {children}
       </div>
     </main>
