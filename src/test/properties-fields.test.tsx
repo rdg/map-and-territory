@@ -4,6 +4,7 @@ import { SelectField } from '@/components/properties/select';
 import { ColorField } from '@/components/properties/color';
 import { Int1D, Float2D } from '@/components/properties/number';
 import { PropertyLabel } from '@/components/properties/label';
+import { CheckboxField } from '@/components/properties/checkbox';
 
 describe('Properties fields', () => {
   it('SelectField fires onChange when not readOnly', () => {
@@ -59,5 +60,19 @@ describe('Properties fields', () => {
     render(<PropertyLabel text="Hello" />);
     expect(screen.getByText('Hello')).toBeInTheDocument();
   });
-});
 
+  it('CheckboxField toggles and respects readOnly', () => {
+    let checked = false;
+    const { rerender } = render(
+      <CheckboxField label="B" value={checked} onChange={(v) => { checked = v; }} />
+    );
+    const box = screen.getByLabelText('B');
+    fireEvent.click(box);
+    expect(checked).toBe(true);
+
+    // readOnly disables interaction
+    rerender(<CheckboxField label="B" value={checked} onChange={(v) => { checked = v; }} readOnly />);
+    fireEvent.click(screen.getByLabelText('B'));
+    expect(checked).toBe(true);
+  });
+});
