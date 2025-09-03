@@ -1,0 +1,39 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import { loadPlugin, unloadPlugin, getToolbarContributions } from '@/plugin/loader';
+import type { PluginManifest, PluginModule } from '@/plugin/types';
+import { executeCommand, hasCommand } from '@/lib/commands';
+
+describe('Plugin Loader (stub)', () => {
+  beforeEach(async () => {
+    // unload any previously loaded plugins by id if needed in future
+  });
+
+  it('registers commands and toolbar contributions', async () => {
+    const manifest: PluginManifest = {
+      id: 'test.plugin',
+      name: 'Test Plugin',
+      version: '0.0.1',
+      contributes: {
+        commands: [{ id: 'test.hello', title: 'Hello' }],
+        toolbar: [{ group: 'test', items: [{ type: 'button', command: 'test.hello', label: 'Hello' }] }],
+      },
+    };
+
+    const module: PluginModule = {
+      commands: {
+        'test.hello': () => 'ok',
+      },
+    };
+
+    await loadPlugin(manifest, module);
+    expect(hasCommand('test.hello')).toBe(true);
+    const toolbar = getToolbarContributions();
+    expect(toolbar.find((t) => t.command === 'test.hello')).toBeTruthy();
+
+    const res = await executeCommand('test.hello');
+    expect(res).toBe(undefined); // our handler returns void in registry; ensure no throw
+
+    await unloadPlugin('test.plugin');
+  });
+});
+
