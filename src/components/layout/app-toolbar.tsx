@@ -99,6 +99,7 @@ export const AppToolbar: React.FC = () => {
               size="sm" 
               className="h-8 w-8 p-0"
               onClick={toggleSidebar}
+              aria-label="Toggle Scene Panel"
             >
               {isOpen ? (
                 <PanelLeftClose className="h-4 w-4" />
@@ -146,6 +147,7 @@ export const AppToolbar: React.FC = () => {
               size="sm"
               className="h-8 w-8 p-0"
               onClick={togglePropertiesPanel}
+              aria-label="Toggle Properties Panel"
             >
               {propertiesPanelOpen ? (
                 <PanelRightClose className="h-4 w-4" />

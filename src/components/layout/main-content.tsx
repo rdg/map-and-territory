@@ -79,7 +79,7 @@ export const MainContent: React.FC<MainContentProps> = ({
     <main
       className={cn(
         // Base layout classes
-        getResponsiveClasses(),
+        getResponsiveClasses(), 'w-full',
         
         // Scroll behavior
         getScrollClasses(),
@@ -95,7 +95,7 @@ export const MainContent: React.FC<MainContentProps> = ({
       )}
     >
       {/* Content wrapper - natural height; scroll when content overflows */}
-      <div className="min-h-0">
+      <div className="min-h-0 w-full">
         {children}
       </div>
     </main>
