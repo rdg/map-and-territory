@@ -32,6 +32,7 @@ import { Button } from '@/components/ui/button';
 import { useLayoutStore } from '@/stores/layout';
 import { useAuth } from '@/components/providers/auth-provider';
 import { AppHeaderProps } from '@/types/layout';
+import { useProjectStore } from '@/stores/project';
 
 // ============================================================================
 // Navigation Configuration
@@ -52,6 +53,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 }) => {
   const setTheme = useLayoutStore((state) => state.setTheme);
   const { user, isAuthenticated, logout } = useAuth();
+  const projectName = useProjectStore((s) => s.current?.name);
 
   /**
    * Handle theme toggle action
@@ -147,6 +149,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         {/* Left section: App Title */}
         <div className="flex items-center gap-3">
           <h1 className="text-sm font-semibold">Map & Territory</h1>
+          {projectName && (
+            <span className="text-xs text-muted-foreground">— {projectName}</span>
+          )}
         </div>
 
         {/* Spacer */}

@@ -27,7 +27,10 @@ import PropertiesPanel from './properties-panel-simple';
 import MainContent from './main-content';
 import { AuthErrorBoundary } from '../providers/auth-provider';
 import StatusBar from './status-bar';
-// import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
+import { ensureCommand } from '@/lib/commands';
+import { useProjectStore } from '@/stores/project';
+import { useSelectionStore } from '@/stores/selection';
 
 import { BaseLayoutProps } from '@/types/layout';
 import { cn } from '@/lib/utils';
@@ -57,8 +60,17 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
   const scenePanelWidthPx = useLayoutStore((state) => state.scenePanelWidth);
   const propsPanelWidthPx = useLayoutStore((state) => state.propertiesPanelWidth);
   
-  // Keyboard shortcuts temporarily disabled until post-SSR mount
-  // useKeyboardShortcuts();
+  // Keyboard shortcuts
+  useKeyboardShortcuts();
+
+  // Register host command for new campaign (prompt + create)
+  useEffect(() => {
+    ensureCommand('host.prompt.newCampaign', async () => {
+      // MVP: no dialogs; create Untitled campaign with empty description
+      useProjectStore.getState().createEmpty({ name: 'Untitled Campaign', description: '' });
+      useSelectionStore.getState().selectCampaign();
+    });
+  }, []);
 
   const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
   const vw = typeof window !== 'undefined' ? window.innerWidth : 0;
