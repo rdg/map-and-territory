@@ -21,7 +21,8 @@ describe('Plugin Loader (stub)', () => {
 
     const module: PluginModule = {
       commands: {
-        'test.hello': () => 'ok',
+        // Return void to match command contract (no value expected)
+        'test.hello': () => {},
       },
     };
 
@@ -31,9 +32,8 @@ describe('Plugin Loader (stub)', () => {
     expect(toolbar.find((t) => t.command === 'test.hello')).toBeTruthy();
 
     const res = await executeCommand('test.hello');
-    expect(res).toBe(undefined); // our handler returns void in registry; ensure no throw
+    expect(res).toBe(undefined); // handler returns void; ensure no throw and no value
 
     await unloadPlugin('test.plugin');
   });
 });
-
