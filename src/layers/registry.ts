@@ -1,4 +1,4 @@
-import type { LayerType, LayerTypeId } from './types';
+import type { LayerType, LayerTypeId, LayerPolicy } from './types';
 
 const layerTypes = new Map<LayerTypeId, LayerType<any>>();
 
@@ -18,3 +18,7 @@ export function listLayerTypes(): LayerType[] {
   return Array.from(layerTypes.values());
 }
 
+export function getLayerPolicy(id: LayerTypeId): LayerPolicy {
+  const t = layerTypes.get(id);
+  return t?.policy ?? { canDelete: true, canDuplicate: true };
+}

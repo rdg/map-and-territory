@@ -19,11 +19,18 @@ export interface LayerAdapter<State = unknown> {
   deserialize?: (raw: unknown) => State;
 }
 
+export interface LayerPolicy {
+  canDelete?: boolean; // default true
+  canDuplicate?: boolean; // default true
+  maxInstances?: number; // default unlimited
+}
+
 export interface LayerType<State = unknown> {
   id: LayerTypeId;
   title: string;
   defaultState: State;
   adapter: LayerAdapter<State>;
+  policy?: LayerPolicy;
 }
 
 export interface LayerInstance<State = unknown> {
@@ -34,4 +41,3 @@ export interface LayerInstance<State = unknown> {
   locked?: boolean;
   state: State;
 }
-
