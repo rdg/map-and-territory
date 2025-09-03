@@ -10,6 +10,8 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { ColorField, SelectField, PropertyLabel } from '@/components/properties';
 import { Separator } from '@/components/ui/separator';
 
 import { useLayoutStore } from '@/stores/layout';
@@ -62,9 +64,12 @@ const FieldLabel: React.FC<{ label: string }> = ({ label }) => (
   <div className="text-xs text-foreground mb-1">{label}</div>
 );
 
-const Group: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+const Group: React.FC<{ title: string; children: React.ReactNode; actions?: React.ReactNode }> = ({ title, children, actions }) => (
   <div>
-    <div className="text-[11px] uppercase tracking-wide text-foreground mb-2">{title}</div>
+    <div className="flex items-center justify-between mb-2">
+      <div className="text-[11px] uppercase tracking-wide text-foreground">{title}</div>
+      {actions}
+    </div>
     <div className="space-y-3">{children}</div>
     <Separator className="my-3" />
   </div>
@@ -112,13 +117,20 @@ const MapProperties: React.FC = () => {
   const project = useProjectStore((s) => s.current);
   const renameMap = useProjectStore((s) => s.renameMap);
   const setMapDescription = useProjectStore((s) => s.setMapDescription);
+  const setMapPaperAspect = useProjectStore((s) => s.setMapPaperAspect);
+  const setMapPaperColor = useProjectStore((s) => s.setMapPaperColor);
 
   if (selection.kind !== 'map' || !project) return null;
   const map = project.maps.find((m) => m.id === selection.id);
   if (!map) return null;
 
+  const resetPaper = () => {
+    setMapPaperAspect(map.id, '16:10');
+    setMapPaperColor(map.id, '#ffffff');
+  };
+
   return (
-    <Group title="Map">
+    <Group title="Map" actions={<Button size="sm" variant="outline" onClick={resetPaper}>Reset Paper</Button>}>
       <div>
         <FieldLabel label="Title" />
         <Input
@@ -138,15 +150,33 @@ const MapProperties: React.FC = () => {
           aria-label="Map Description"
         />
       </div>
-      <div className="flex items-center gap-2">
-        <input
-          id={`map-visible-${map.id}`}
-          type="checkbox"
-          className="h-3 w-3"
-          checked={map.visible}
-          onChange={(e) => useProjectStore.getState().setMapVisibility(map.id, e.target.checked)}
-        />
-        <label htmlFor={`map-visible-${map.id}`} className="text-xs">Visible</label>
+      <SelectField
+        label="Paper Aspect Ratio"
+        value={map.paper?.aspect ?? '16:10'}
+        options={[
+          { value: 'square', label: 'Square (1:1)' },
+          { value: '4:3', label: '4:3' },
+          { value: '16:10', label: '16:10' },
+        ]}
+        onChange={(v) => setMapPaperAspect(map.id, v as any)}
+      />
+      <ColorField
+        label="Paper Color"
+        value={map.paper?.color ?? '#ffffff'}
+        onChange={(v) => setMapPaperColor(map.id, v)}
+      />
+      <div>
+        <PropertyLabel text="Visibility" />
+        <div className="mt-1">
+          <Button
+            variant={map.visible ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => useProjectStore.getState().setMapVisibility(map.id, !map.visible)}
+            aria-pressed={map.visible}
+          >
+            {map.visible ? 'Visible' : 'Hidden'}
+          </Button>
+        </div>
       </div>
     </Group>
   );

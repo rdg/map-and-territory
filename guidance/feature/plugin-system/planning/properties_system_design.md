@@ -122,6 +122,10 @@ Terrain Layer (scope: `layer:terrain`)
 - Controlled inputs, debounced patches for sliders.
 - Virtualize long lists of groups/fields when needed.
 
+## Future Optionality
+
+- Palette presets: Provide curated color palettes (e.g., parchment/ink/steel) and expose as `presets` on `ColorField`. Defer implementation until base UX is stable.
+
 ## Acceptance Criteria (MVP)
 
 - Properties Panel renders from schemas for paper, hexgrid, and terrain layers.
@@ -142,4 +146,3 @@ Terrain Layer (scope: `layer:terrain`)
 - Renderer: group/row layout, widget registry, controlled inputs, virtualization.
 - Bindings: path adapter, computed adapter (safe evaluator), programmatic adapter.
 - Integration: history wrapper, performance tuning, DX utilities for plugin authors.
-
