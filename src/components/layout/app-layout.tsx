@@ -31,6 +31,8 @@ import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { ensureCommand } from '@/lib/commands';
 import { useProjectStore } from '@/stores/project';
 import { useSelectionStore } from '@/stores/selection';
+import { loadPlugin } from '@/plugin/loader';
+import { newCampaignManifest, newCampaignModule } from '@/plugin/builtin/new-campaign';
 
 import { BaseLayoutProps } from '@/types/layout';
 import { cn } from '@/lib/utils';
@@ -70,6 +72,11 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
       useProjectStore.getState().createEmpty({ name: 'Untitled Campaign', description: '' });
       useSelectionStore.getState().selectCampaign();
     });
+  }, []);
+
+  // Load built-in New Campaign plugin (registers command + toolbar contribution)
+  useEffect(() => {
+    loadPlugin(newCampaignManifest, newCampaignModule);
   }, []);
 
   const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
