@@ -7,94 +7,37 @@
  * Positioned below header, spans full width.
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useSyncExternalStore } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { LucideIcon, FilePlus } from 'lucide-react';
 
 import { useLayoutStore } from '@/stores/layout';
-import { executeCommand, ensureCommand } from '@/lib/commands';
+import { executeCommand } from '@/lib/commands';
+import { getToolbarContributions } from '@/plugin/loader';
 
 // Creative tool icons
-import {
-  PanelLeftOpen,
-  PanelLeftClose,
-  MousePointer2,
-  Paintbrush,
-  Pen,
-  Eraser,
-  Type,
-  ZoomIn,
-  Grid3x3,
-  PanelRightOpen,
-  PanelRightClose,
-} from 'lucide-react';
+import { PanelLeftOpen, PanelLeftClose, PanelRightOpen, PanelRightClose } from 'lucide-react';
 
-// ============================================================================
-// Tool Definitions
-// ============================================================================
-
-const CREATIVE_TOOLS = [
-  { id: 'select', name: 'Select', icon: MousePointer2, shortcut: '1' },
-  { id: 'paint', name: 'Hex Paint', icon: Paintbrush, shortcut: '2' },
-  { id: 'draw', name: 'Draw', icon: Pen, shortcut: '3' },
-  { id: 'erase', name: 'Erase', icon: Eraser, shortcut: '4' },
-  { id: 'text', name: 'Text', icon: Type, shortcut: '5' },
-] as const;
-
-const VIEW_TOOLS = [
-  { id: 'zoom', name: 'Zoom', icon: ZoomIn, shortcut: 'Z' },
-  { id: 'grid', name: 'Grid Toggle', icon: Grid3x3, shortcut: 'G' },
-] as const;
+// Dynamic toolbar contributions are rendered from the plugin loader
 
 // ============================================================================
 // AppToolbar Component
 // ============================================================================
 
 export const AppToolbar: React.FC = () => {
+  const EMPTY: ReadonlyArray<ReturnType<typeof getToolbarContributions>[number]> = [];
   const isOpen = useLayoutStore((state) => state.isOpen);
   const toggleSidebar = useLayoutStore((state) => state.toggleSidebar);
   
   // Use store state instead of local state
-  const activeTool = useLayoutStore((state) => state.activeTool);
   const propertiesPanelOpen = useLayoutStore((state) => state.propertiesPanelOpen);
-  const setActiveTool = useLayoutStore((state) => state.setActiveTool);
   const togglePropertiesPanel = useLayoutStore((state) => state.togglePropertiesPanel);
 
-  // Register minimal commands wiring for New Campaign on mount
-  useEffect(() => {
-    // Bridge command: app.campaign.new -> host.prompt.newCampaign
-    ensureCommand('app.campaign.new', async () => {
-      await executeCommand('host.prompt.newCampaign');
-    });
-  }, []);
+  // Commands come from plugin loader; no local registration here
 
-  /**
-   * Render tool button with tooltip
-   */
-  const renderToolButton = (tool: { id: string; name: string; icon: LucideIcon; shortcut: string }, isActive = false) => (
-    <Tooltip key={tool.id}>
-      <TooltipTrigger asChild>
-        <Button
-          variant={isActive ? 'default' : 'ghost'}
-          size="sm"
-          className={`h-8 w-8 p-0 transition-colors duration-150 ${
-            isActive ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'
-          }`}
-          onClick={() => setActiveTool(tool.id)}
-        >
-          <tool.icon className="h-4 w-4" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side="bottom">
-        <div className="flex items-center gap-2">
-          <span>{tool.name}</span>
-          <kbd className="px-1 py-0.5 text-xs bg-muted rounded">{tool.shortcut}</kbd>
-        </div>
-      </TooltipContent>
-    </Tooltip>
-  );
+  // no static tool buttons in MVP; all tools come from contributions later
 
   return (
     <div className="w-full border-b bg-background">
@@ -126,33 +69,55 @@ export const AppToolbar: React.FC = () => {
 
         <Separator orientation="vertical" className="h-6" />
 
-        {/* Campaign Group (first group after left divider) */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 px-2"
-          onClick={() => executeCommand('app.campaign.new').catch(console.error)}
-          aria-label="New Campaign (Mod+Shift+N)"
-        >
-          <FilePlus className="mr-2 h-4 w-4" />
-          <span className="text-sm">New</span>
-        </Button>
-
-        {/* Creative Tools */}
+        {/* Dynamic toolbar contributions: first group after left divider */}
         <div className="flex items-center gap-1">
-          {CREATIVE_TOOLS.map((tool) => 
-            renderToolButton(tool, activeTool === tool.id)
-          )}
+          {useSyncExternalStore(
+            // subscribe to toolbar updates
+            (cb) => {
+              const handler = () => cb();
+              if (typeof window !== 'undefined') {
+                window.addEventListener('plugin:toolbar-updated', handler);
+              }
+              return () => {
+                if (typeof window !== 'undefined') {
+                  window.removeEventListener('plugin:toolbar-updated', handler);
+                }
+              };
+            },
+            // getSnapshot
+            () => getToolbarContributions(),
+            // getServerSnapshot
+            () => EMPTY
+          )
+            .sort((a, b) => {
+              // campaign group first; then by order then label
+              const ga = a.group === 'campaign' ? 0 : 1;
+              const gb = b.group === 'campaign' ? 0 : 1;
+              if (ga !== gb) return ga - gb;
+              const oa = a.order ?? 0;
+              const ob = b.order ?? 0;
+              if (oa !== ob) return oa - ob;
+              return (a.label || a.command).localeCompare(b.label || b.command);
+            })
+            .map((item, idx) => {
+              const aria = item.label || item.command;
+              // Minimal icon resolver for MVP
+              const Icon = FilePlus as LucideIcon;
+              return (
+                <Button
+                  key={`${item.pluginId}:${item.group}:${item.command}:${idx}`}
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  aria-label={aria}
+                  onClick={() => executeCommand(item.command).catch(console.error)}
+                >
+                  <Icon className="h-4 w-4" />
+                </Button>
+              );
+            })}
         </div>
 
-        <Separator orientation="vertical" className="h-6" />
-
-        {/* View Tools */}
-        <div className="flex items-center gap-1">
-          {VIEW_TOOLS.map((tool) => 
-            renderToolButton(tool, false)
-          )}
-        </div>
 
         {/* Spacer */}
         <div className="flex-1" />
