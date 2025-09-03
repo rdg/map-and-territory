@@ -69,7 +69,7 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
 
           {/* Main editor area with resizable panels */}
           <div className="flex flex-1 min-h-0">
-            <PanelGroup direction="horizontal">
+            <PanelGroup direction="horizontal" className="h-full w-full">
               {/* Scene Panel (Resizable) */}
               {isOpen && (
                 <Panel
@@ -77,6 +77,7 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
                   defaultSize={20}
                   minSize={15}
                   maxSize={30}
+                  className="h-full"
                   onResize={(size) => {
                     const width = Math.round((size / 100) * window.innerWidth);
                     setScenePanelWidth(width);
@@ -96,13 +97,15 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
                 minSize={50}
                 // Provide a default size to avoid SSR layout shift
                 defaultSize={isOpen ? 80 : 100}
+                className="h-full"
               >
                 <div className="flex flex-1 min-h-0">
-                  <PanelGroup direction="horizontal">
+                  <PanelGroup direction="horizontal" className="h-full w-full">
                     <Panel
                       minSize={40}
                       // Provide a default size; complement of properties panel when open
                       defaultSize={propertiesPanelOpen ? 75 : 100}
+                      className="h-full"
                     >
                       <MainContent className="h-full">
                         {children}
@@ -117,6 +120,7 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
                           defaultSize={25}
                           minSize={20}
                           maxSize={35}
+                          className="h-full"
                           onResize={(size) => {
                             const width = Math.round((size / 100) * window.innerWidth);
                             setPropertiesPanelWidth(width);
