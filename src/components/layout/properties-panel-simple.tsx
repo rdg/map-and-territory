@@ -46,6 +46,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
       <div className="p-3 border-b text-xs font-medium text-muted-foreground">Properties</div>
       <div className="p-3 space-y-4 overflow-auto">
         <CampaignProperties />
+        <MapProperties />
       </div>
     </div>
   );
@@ -101,6 +102,51 @@ const CampaignProperties: React.FC = () => {
           rows={5}
           aria-label="Campaign Description"
         />
+      </div>
+    </Group>
+  );
+};
+
+const MapProperties: React.FC = () => {
+  const selection = useSelectionStore((s) => s.selection);
+  const project = useProjectStore((s) => s.current);
+  const renameMap = useProjectStore((s) => s.renameMap);
+  const setMapDescription = useProjectStore((s) => s.setMapDescription);
+
+  if (selection.kind !== 'map' || !project) return null;
+  const map = project.maps.find((m) => m.id === selection.id);
+  if (!map) return null;
+
+  return (
+    <Group title="Map">
+      <div>
+        <FieldLabel label="Title" />
+        <Input
+          value={map.name}
+          onChange={(e) => renameMap(map.id, e.target.value)}
+          placeholder="Untitled Map"
+          aria-label="Map Title"
+        />
+      </div>
+      <div>
+        <FieldLabel label="Description" />
+        <Textarea
+          value={map.description ?? ''}
+          onChange={(e) => setMapDescription(map.id, e.target.value)}
+          placeholder="Optional description"
+          rows={4}
+          aria-label="Map Description"
+        />
+      </div>
+      <div className="flex items-center gap-2">
+        <input
+          id={`map-visible-${map.id}`}
+          type="checkbox"
+          className="h-3 w-3"
+          checked={map.visible}
+          onChange={(e) => useProjectStore.getState().setMapVisibility(map.id, e.target.checked)}
+        />
+        <label htmlFor={`map-visible-${map.id}`} className="text-xs">Visible</label>
       </div>
     </Group>
   );

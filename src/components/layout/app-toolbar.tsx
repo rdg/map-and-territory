@@ -11,14 +11,14 @@ import React, { useEffect, useSyncExternalStore } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { LucideIcon, FilePlus } from 'lucide-react';
+import { LucideIcon } from 'lucide-react';
 
 import { useLayoutStore } from '@/stores/layout';
 import { executeCommand } from '@/lib/commands';
 import { getToolbarContributions } from '@/plugin/loader';
 
 // Creative tool icons
-import { PanelLeftOpen, PanelLeftClose, PanelRightOpen, PanelRightClose } from 'lucide-react';
+import { PanelLeftOpen, PanelLeftClose, PanelRightOpen, PanelRightClose, FilePlus, Map as MapIcon, Box } from 'lucide-react';
 
 // Dynamic toolbar contributions are rendered from the plugin loader
 
@@ -89,31 +89,56 @@ export const AppToolbar: React.FC = () => {
             // getServerSnapshot
             () => EMPTY
           )
+            .reduce((acc: Array<{ group: string; items: typeof EMPTY }>, item) => {
+              const g = acc.find((x) => x.group === item.group);
+              if (g) {
+                (g.items as any).push(item);
+              } else {
+                acc.push({ group: item.group, items: [item] as any });
+              }
+              return acc;
+            }, [])
             .sort((a, b) => {
-              // campaign group first; then by order then label
-              const ga = a.group === 'campaign' ? 0 : 1;
-              const gb = b.group === 'campaign' ? 0 : 1;
-              if (ga !== gb) return ga - gb;
-              const oa = a.order ?? 0;
-              const ob = b.order ?? 0;
-              if (oa !== ob) return oa - ob;
-              return (a.label || a.command).localeCompare(b.label || b.command);
+              if (a.group === 'campaign' && b.group !== 'campaign') return -1;
+              if (b.group === 'campaign' && a.group !== 'campaign') return 1;
+              return a.group.localeCompare(b.group);
             })
-            .map((item, idx) => {
-              const aria = item.label || item.command;
-              // Minimal icon resolver for MVP
-              const Icon = FilePlus as LucideIcon;
+            .map((group, gi, groups) => {
+              const items = (group.items as any as ReturnType<typeof getToolbarContributions>).slice().sort((a, b) => {
+                const oa = a.order ?? 0;
+                const ob = b.order ?? 0;
+                if (oa !== ob) return oa - ob;
+                return (a.label || a.command).localeCompare(b.label || b.command);
+              });
               return (
-                <Button
-                  key={`${item.pluginId}:${item.group}:${item.command}:${idx}`}
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  aria-label={aria}
-                  onClick={() => executeCommand(item.command).catch(console.error)}
-                >
-                  <Icon className="h-4 w-4" />
-                </Button>
+                <React.Fragment key={`grp:${group.group}`}>
+                  {items.map((item, idx) => {
+                    const aria = item.label || item.command;
+                    // Icon resolver: lucide:* -> component
+                    let Icon: LucideIcon = FilePlus;
+                    if (item.icon && item.icon.startsWith('lucide:')) {
+                      const name = item.icon.slice('lucide:'.length);
+                      if (name === 'map') Icon = MapIcon as LucideIcon;
+                      else if (name === 'box') Icon = Box as LucideIcon;
+                      else if (name === 'file-plus') Icon = FilePlus as LucideIcon;
+                    }
+                    return (
+                      <Button
+                        key={`${item.pluginId}:${item.group}:${item.command}:${idx}`}
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        aria-label={aria}
+                        onClick={() => executeCommand(item.command).catch(console.error)}
+                      >
+                        <Icon className="h-4 w-4" />
+                      </Button>
+                    );
+                  })}
+                  {gi < groups.length - 1 && (
+                    <Separator orientation="vertical" className="h-6" />
+                  )}
+                </React.Fragment>
               );
             })}
         </div>
