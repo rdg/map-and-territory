@@ -14,7 +14,7 @@ export const newCampaignManifest: PluginManifest = {
       {
         group: 'campaign',
         items: [
-          { type: 'button', command: 'app.campaign.new', icon: 'lucide:file-plus', label: 'New', order: 1 },
+          { type: 'button', command: 'app.campaign.new', icon: 'lucide:box', label: 'New Campaign', order: 1 },
         ],
       },
     ],
@@ -28,4 +28,3 @@ export const newCampaignModule: PluginModule = {
     },
   },
 };
-
