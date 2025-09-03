@@ -41,8 +41,10 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   }
   
   return (
-    <div className={`h-full w-full border-l bg-background ${className}`}>
-      <div className="p-4 space-y-4 h-full overflow-auto">
+    <div
+      className={`h-full w-full border-l bg-background flex flex-col min-h-0 ${className}`}
+    >
+      <div className="p-4 space-y-4 min-h-0 flex-1 flex flex-col">
         {/* Tool Header */}
         <div className="flex items-center gap-2">
           <MousePointer2 className="h-4 w-4" />
@@ -54,6 +56,8 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 
         <Separator />
 
+        {/* Scrollable content */}
+        <div className="flex-1 min-h-0 overflow-auto space-y-4" data-testid="properties-panel">
         {/* Tool Properties */}
         <Card>
           <CardHeader className="pb-3">
@@ -140,6 +144,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             Select an element on the map to view its properties
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );

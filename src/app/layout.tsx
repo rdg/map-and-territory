@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Map & Territory - Professional Layout System",
+  title: "Map & Territory ",
   description: "Professional desktop application with advanced layout management",
 };
 

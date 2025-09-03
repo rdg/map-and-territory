@@ -61,29 +61,34 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
   return (
     <TooltipProvider>
       <SidebarProvider>
-        <div className={cn('flex min-h-screen w-full flex-col', className)}>
-          {/* Global Header spans full viewport width */}
+        <div className={cn('grid h-screen w-full grid-rows-[auto_auto_1fr_auto]', className)}>
+          {/* Row 1: Header */}
           <AppHeader />
-          {/* Global Toolbar spans full viewport width */}
+          {/* Row 2: Toolbar */}
           <AppToolbar />
 
-          {/* Main editor area with resizable panels */}
-          <div className="flex flex-1 min-h-0">
-            <PanelGroup direction="horizontal" className="h-full w-full">
+          {/* Row 3: Main editor area; only this row scrolls its own content */}
+          <div className="min-h-0 overflow-hidden">
+            {/* Provide explicit height to panels via h-full */}
+            <PanelGroup direction="horizontal" className="h-full">
               {/* Scene Panel (Resizable) */}
               {isOpen && (
                 <Panel
                   id="scene-panel"
+                  order={1}
                   defaultSize={20}
                   minSize={15}
                   maxSize={30}
-                  className="h-full"
+                  className="min-h-0"
                   onResize={(size) => {
                     const width = Math.round((size / 100) * window.innerWidth);
                     setScenePanelWidth(width);
                   }}
                 >
-                  <AppSidebar />
+                  {/* Ensure internal column manages its own scroll */}
+                  <div className="h-full min-h-0">
+                    <AppSidebar />
+                  </div>
                 </Panel>
               )}
 
@@ -92,53 +97,49 @@ export const AppLayout: React.FC<BaseLayoutProps> = ({
                 <PanelResizeHandle className="w-1 bg-border hover:bg-accent transition-colors" />
               )}
 
-              {/* Center content + optional properties panel */}
+              {/* Main Panel */}
               <Panel
-                minSize={50}
-                // Provide a default size to avoid SSR layout shift
-                defaultSize={isOpen ? 80 : 100}
-                className="h-full"
+                id="main-panel"
+                order={2}
+                minSize={40}
+                defaultSize={propertiesPanelOpen ? (isOpen ? 60 : 75) : (isOpen ? 80 : 100)}
+                className="min-h-0"
               >
-                <div className="flex flex-1 min-h-0">
-                  <PanelGroup direction="horizontal" className="h-full w-full">
-                    <Panel
-                      minSize={40}
-                      // Provide a default size; complement of properties panel when open
-                      defaultSize={propertiesPanelOpen ? 75 : 100}
-                      className="h-full"
-                    >
-                      <MainContent className="h-full">
-                        {children}
-                      </MainContent>
-                    </Panel>
-
-                    {propertiesPanelOpen && (
-                      <>
-                        <PanelResizeHandle className="w-1 bg-border hover:bg-accent transition-colors" />
-                        <Panel
-                          id="properties-panel"
-                          defaultSize={25}
-                          minSize={20}
-                          maxSize={35}
-                          className="h-full"
-                          onResize={(size) => {
-                            const width = Math.round((size / 100) * window.innerWidth);
-                            setPropertiesPanelWidth(width);
-                          }}
-                        >
-                          <AuthErrorBoundary>
-                            <PropertiesPanel />
-                          </AuthErrorBoundary>
-                        </Panel>
-                      </>
-                    )}
-                  </PanelGroup>
+                <div className="h-full min-h-0 flex flex-col">
+                  <MainContent scrollable>
+                    {children}
+                  </MainContent>
                 </div>
               </Panel>
+
+              {/* Properties Panel (Resizable) */}
+              {propertiesPanelOpen && (
+                <>
+                  <PanelResizeHandle className="w-1 bg-border hover:bg-accent transition-colors" />
+                  <Panel
+                    id="properties-panel"
+                    order={3}
+                    defaultSize={25}
+                    minSize={20}
+                    maxSize={35}
+                    className="min-h-0"
+                    onResize={(size) => {
+                      const width = Math.round((size / 100) * window.innerWidth);
+                      setPropertiesPanelWidth(width);
+                    }}
+                  >
+                    <AuthErrorBoundary>
+                      <div className="h-full min-h-0">
+                        <PropertiesPanel />
+                      </div>
+                    </AuthErrorBoundary>
+                  </Panel>
+                </>
+              )}
             </PanelGroup>
           </div>
 
-          {/* Status Bar spanning full width at bottom */}
+          {/* Row 4: Status Bar */}
           {statusBarVisible && <StatusBar />}
         </div>
       </SidebarProvider>
