@@ -78,3 +78,15 @@ Replace enterprise sections with map editor relevant tools:
 ## Next Steps
 
 The layout system needs to be simplified to match the actual product vision. This means removing enterprise-focused elements and replacing them with creative tool patterns that make sense for a hexmap editor.
+- Layout scrolling discipline (desktop app)
+
+  - Use a 4-row CSS grid: `grid-rows-[auto_auto_1fr_auto]` so only the content row expands.
+  - Set `body` to `overflow-hidden` to prevent window scrolling; only inner containers scroll.
+  - In the content row, any flex or panel wrapper must include `min-h-0` to allow children to shrink and scroll.
+  - Apply `h-full` to the top-level `PanelGroup` so it inherits the grid row height; use `min-h-0` for `Panel` content.
+  - Make the scroll container explicit where needed:
+    - Main view: `<main class="overflow-auto flex-1 min-h-0" />` and avoid forcing child heights.
+    - Side panels: header/footer remain non-scrollable; wrap the middle section in `div.flex-1.min-h-0.overflow-auto`.
+  - For resizable panels, ensure default sizes sum to 100% to avoid normalization warnings; compute defaults from persisted pixel widths when available.
+
+  This pattern avoids accidental parent expansion (default `min-height:auto`) and guarantees independent scrolling for each column while header, toolbar and statusbar stay fixed.
