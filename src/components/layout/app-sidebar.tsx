@@ -21,7 +21,6 @@ import {
   SidebarGroupLabel,
   SidebarGroupContent,
 } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
 import { useLayoutStore } from '@/stores/layout';
@@ -31,7 +30,6 @@ import { AppSidebarProps } from '@/types/layout';
 import {
   Map,
   Layers,
-  FileText,
   Plus,
   MoreHorizontal,
 } from 'lucide-react';
@@ -68,6 +66,11 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   const isOpen = useLayoutStore((state) => state.isOpen);
   const variant = useLayoutStore((state) => state.variant);
   const collapsible = useLayoutStore((state) => state.collapsible);
+
+  // Return null when closed for full collapse functionality
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <Sidebar

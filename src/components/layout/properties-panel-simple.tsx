@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 
+import { useLayoutStore } from '@/stores/layout';
+
 // Icons
 import {
   Settings,
@@ -32,8 +34,14 @@ interface PropertiesPanelProps {
 export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   className = '',
 }) => {
+  const propertiesPanelOpen = useLayoutStore((state) => state.propertiesPanelOpen);
+  
+  if (!propertiesPanelOpen) {
+    return null;
+  }
+  
   return (
-    <div className={`w-80 border-l bg-background ${className}`}>
+    <div className={`w-80 border-l bg-background transition-all duration-200 ${className}`}>
       <div className="p-4 space-y-4">
         {/* Tool Header */}
         <div className="flex items-center gap-2">

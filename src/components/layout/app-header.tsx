@@ -19,22 +19,6 @@ import React from 'react';
 import Link from 'next/link';
 
 import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from '@/components/ui/navigation-menu';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -44,7 +28,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 
 import { useLayoutStore } from '@/stores/layout';
 import { useAuth } from '@/components/providers/auth-provider';
@@ -54,42 +37,6 @@ import { AppHeaderProps } from '@/types/layout';
 // Navigation Configuration
 // ============================================================================
 
-/**
- * Main navigation menu structure
- * Configured for professional application use cases
- */
-const NAVIGATION_ITEMS = [
-  {
-    title: 'Explore',
-    href: '/explore',
-    description: 'Data exploration and visualization tools',
-    items: [
-      { title: 'Dashboard', href: '/explore/dashboard', description: 'Overview and key metrics' },
-      { title: 'Analytics', href: '/explore/analytics', description: 'Advanced data analysis' },
-      { title: 'Reports', href: '/explore/reports', description: 'Generated reports and insights' },
-    ],
-  },
-  {
-    title: 'Manage',
-    href: '/manage',
-    description: 'Configuration and administration',
-    items: [
-      { title: 'Settings', href: '/manage/settings', description: 'Application configuration' },
-      { title: 'Users', href: '/manage/users', description: 'User management and permissions' },
-      { title: 'Integrations', href: '/manage/integrations', description: 'Third-party connections' },
-    ],
-  },
-  {
-    title: 'Tools',
-    href: '/tools',
-    description: 'Utilities and advanced features',
-    items: [
-      { title: 'Import', href: '/tools/import', description: 'Data import tools' },
-      { title: 'Export', href: '/tools/export', description: 'Data export options' },
-      { title: 'API', href: '/tools/api', description: 'API documentation and testing' },
-    ],
-  },
-] as const;
 
 // ============================================================================
 // AppHeader Component
@@ -101,10 +48,8 @@ const NAVIGATION_ITEMS = [
  * @param props - AppHeader configuration props
  */
 export const AppHeader: React.FC<AppHeaderProps> = ({
-  showBreadcrumbs = true,
   className = '',
 }) => {
-  const breadcrumb = useLayoutStore((state) => state.breadcrumb);
   const setTheme = useLayoutStore((state) => state.setTheme);
   const { user, isAuthenticated, logout } = useAuth();
 
@@ -128,86 +73,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     }
   };
 
-  /**
-   * Render breadcrumb navigation
-   */
-  const renderBreadcrumbs = () => {
-    if (!showBreadcrumbs || breadcrumb.length === 0) {
-      return null;
-    }
 
-    return (
-      <Breadcrumb>
-        <BreadcrumbList>
-          {breadcrumb.map((item, index) => (
-            <React.Fragment key={`${item.label}-${index}`}>
-              <BreadcrumbItem>
-                {item.isCurrent ? (
-                  <BreadcrumbPage>{item.label}</BreadcrumbPage>
-                ) : (
-                  <BreadcrumbLink asChild>
-                    <Link href={item.href || '#'}>{item.label}</Link>
-                  </BreadcrumbLink>
-                )}
-              </BreadcrumbItem>
-              {index < breadcrumb.length - 1 && <BreadcrumbSeparator />}
-            </React.Fragment>
-          ))}
-        </BreadcrumbList>
-      </Breadcrumb>
-    );
-  };
-
-  /**
-   * Render main navigation menu
-   */
-  const renderNavigation = () => (
-    <NavigationMenu>
-      <NavigationMenuList>
-        {NAVIGATION_ITEMS.map((section) => (
-          <NavigationMenuItem key={section.title}>
-            <NavigationMenuTrigger>{section.title}</NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
-                <li className="row-span-3">
-                  <NavigationMenuLink asChild>
-                    <Link
-                      className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
-                      href={section.href}
-                    >
-                      <div className="mb-2 mt-4 text-lg font-medium">
-                        {section.title}
-                      </div>
-                      <p className="text-sm leading-tight text-muted-foreground">
-                        {section.description}
-                      </p>
-                    </Link>
-                  </NavigationMenuLink>
-                </li>
-                {section.items.map((item) => (
-                  <li key={item.title}>
-                    <NavigationMenuLink asChild>
-                      <Link
-                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                        href={item.href}
-                      >
-                        <div className="text-sm font-medium leading-none">
-                          {item.title}
-                        </div>
-                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                          {item.description}
-                        </p>
-                      </Link>
-                    </NavigationMenuLink>
-                  </li>
-                ))}
-              </ul>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
-        ))}
-      </NavigationMenuList>
-    </NavigationMenu>
-  );
 
   /**
    * Render user account dropdown
@@ -277,25 +143,20 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     <header
       className={`sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${className}`}
     >
-      <div className="container flex h-14 items-center">
-        {/* Left section: Navigation */}
-        <div className="mr-4 hidden md:flex">
-          {renderNavigation()}
+      <div className="w-full flex h-12 items-center px-4">
+        {/* Left section: App Title */}
+        <div className="flex items-center gap-3">
+          <h1 className="text-sm font-semibold">Map & Territory</h1>
         </div>
 
-        {/* Center section: Breadcrumbs */}
-        <div className="flex flex-1 items-center justify-start space-x-2">
-          {renderBreadcrumbs()}
-        </div>
+        {/* Spacer */}
+        <div className="flex-1" />
 
         {/* Right section: User controls */}
         <div className="flex items-center justify-end space-x-2">
           {renderUserDropdown()}
         </div>
       </div>
-
-      {/* Mobile navigation separator (hidden on desktop) */}
-      <Separator className="md:hidden" />
     </header>
   );
 };

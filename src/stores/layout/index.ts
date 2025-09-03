@@ -12,7 +12,6 @@
 import { create } from 'zustand';
 import { devtools, persist, subscribeWithSelector } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { shallow } from 'zustand/shallow';
 
 import { LayoutState, DEFAULT_LAYOUT_STATE } from '../../types/layout';
 
@@ -56,6 +55,19 @@ interface CompleteLayoutStore {
   activeTool: string;
   propertiesPanelOpen: boolean;
   
+  // Panel widths
+  scenePanelWidth: number;
+  propertiesPanelWidth: number;
+  
+  // Status bar
+  statusBarVisible: boolean;
+  
+  // Mouse coordinates for status
+  mousePosition: { x: number; y: number };
+  
+  // Selection state
+  selectionCount: number;
+  
   // Actions
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
@@ -81,6 +93,16 @@ interface CompleteLayoutStore {
   setActiveTool: (tool: string) => void;
   togglePropertiesPanel: () => void;
   setPropertiesPanelOpen: (open: boolean) => void;
+  
+  // Panel sizing actions
+  setScenePanelWidth: (width: number) => void;
+  setPropertiesPanelWidth: (width: number) => void;
+  
+  // Status bar actions
+  toggleStatusBar: () => void;
+  setMousePosition: (x: number, y: number) => void;
+  setSelectionCount: (count: number) => void;
+  
   resetLayout: () => void;
   loadPreferences: () => void;
 }
@@ -106,6 +128,19 @@ export const useLayoutStore = create<CompleteLayoutStore>()(
           // Creative tool defaults
           activeTool: 'select',
           propertiesPanelOpen: true,
+          
+          // Panel width defaults
+          scenePanelWidth: 280,
+          propertiesPanelWidth: 320,
+          
+          // Status bar defaults
+          statusBarVisible: true,
+          
+          // Mouse position defaults
+          mousePosition: { x: 0, y: 0 },
+          
+          // Selection defaults
+          selectionCount: 0,
 
           // ================================================================
           // Sidebar Actions
@@ -232,6 +267,42 @@ export const useLayoutStore = create<CompleteLayoutStore>()(
             });
           },
 
+          // ================================================================
+          // Panel Sizing Actions
+          // ================================================================
+          setScenePanelWidth: (width: number) => {
+            set((state) => {
+              state.scenePanelWidth = Math.max(200, Math.min(400, width));
+            });
+          },
+
+          setPropertiesPanelWidth: (width: number) => {
+            set((state) => {
+              state.propertiesPanelWidth = Math.max(280, Math.min(480, width));
+            });
+          },
+
+          // ================================================================
+          // Status Bar Actions
+          // ================================================================
+          toggleStatusBar: () => {
+            set((state) => {
+              state.statusBarVisible = !state.statusBarVisible;
+            });
+          },
+
+          setMousePosition: (x: number, y: number) => {
+            set((state) => {
+              state.mousePosition = { x, y };
+            });
+          },
+
+          setSelectionCount: (count: number) => {
+            set((state) => {
+              state.selectionCount = Math.max(0, count);
+            });
+          },
+
           /**
            * Load saved preferences from persistence layer
            * Triggers re-hydration of persisted state
@@ -244,6 +315,9 @@ export const useLayoutStore = create<CompleteLayoutStore>()(
               theme: currentState.theme,
               sidebarWidth: currentState.sidebarWidth,
               persistCollapsed: currentState.persistCollapsed,
+              scenePanelWidth: currentState.scenePanelWidth,
+              propertiesPanelWidth: currentState.propertiesPanelWidth,
+              statusBarVisible: currentState.statusBarVisible,
             });
           },
         }))
@@ -273,7 +347,12 @@ export const useLayoutStore = create<CompleteLayoutStore>()(
               variant: state.variant,
               collapsible: state.collapsible,
             },
-            // Don't persist navigation state - it should reset on page load
+            panels: {
+              scenePanelWidth: state.scenePanelWidth,
+              propertiesPanelWidth: state.propertiesPanelWidth,
+              statusBarVisible: state.statusBarVisible,
+            },
+            // Don't persist navigation state or ephemeral status - they should reset on page load
           };
         },
 
@@ -335,6 +414,15 @@ export const getLayoutState = (): LayoutState => {
     tools: {
       activeTool: store.activeTool,
       propertiesPanelOpen: store.propertiesPanelOpen,
+    },
+    panels: {
+      scenePanelWidth: store.scenePanelWidth,
+      propertiesPanelWidth: store.propertiesPanelWidth,
+      statusBarVisible: store.statusBarVisible,
+    },
+    status: {
+      mousePosition: store.mousePosition,
+      selectionCount: store.selectionCount,
     },
   };
 };
@@ -411,7 +499,7 @@ export const useSidebarState = () =>
     isOpen: state.isOpen,
     variant: state.variant,
     collapsible: state.collapsible,
-  }), shallow);
+  }));
 
 /**
  * useLayoutPreferences - Reactive selector for user preferences
@@ -421,7 +509,7 @@ export const useLayoutPreferences = () =>
     theme: state.theme,
     sidebarWidth: state.sidebarWidth,
     persistCollapsed: state.persistCollapsed,
-  }), shallow);
+  }));
 
 /**
  * useNavigationState - Reactive selector for navigation state
@@ -430,7 +518,7 @@ export const useNavigationState = () =>
   useLayoutStore((state) => ({
     activeSection: state.activeSection,
     breadcrumb: state.breadcrumb,
-  }), shallow);
+  }));
 
 /**
  * useSidebarActions - Sidebar action selectors
@@ -441,7 +529,7 @@ export const useSidebarActions = () =>
     setSidebarOpen: state.setSidebarOpen,
     setSidebarVariant: state.setSidebarVariant,
     setSidebarCollapsible: state.setSidebarCollapsible,
-  }), shallow);
+  }));
 
 /**
  * useThemeActions - Preferences action selectors
@@ -451,7 +539,7 @@ export const useThemeActions = () =>
     setTheme: state.setTheme,
     setSidebarWidth: state.setSidebarWidth,
     setPersistCollapsed: state.setPersistCollapsed,
-  }), shallow);
+  }));
 
 /**
  * useNavigationActions - Navigation action selectors
@@ -462,7 +550,7 @@ export const useNavigationActions = () =>
     setBreadcrumb: state.setBreadcrumb,
     addBreadcrumb: state.addBreadcrumb,
     clearBreadcrumb: state.clearBreadcrumb,
-  }), shallow);
+  }));
 
 /**
  * useToolState - Creative tool state selectors
@@ -471,7 +559,7 @@ export const useToolState = () =>
   useLayoutStore((state) => ({
     activeTool: state.activeTool,
     propertiesPanelOpen: state.propertiesPanelOpen,
-  }), shallow);
+  }));
 
 /**
  * useToolActions - Creative tool action selectors
@@ -481,4 +569,42 @@ export const useToolActions = () =>
     setActiveTool: state.setActiveTool,
     togglePropertiesPanel: state.togglePropertiesPanel,
     setPropertiesPanelOpen: state.setPropertiesPanelOpen,
-  }), shallow);
+  }));
+
+/**
+ * usePanelState - Panel sizing and status state selectors
+ */
+export const usePanelState = () =>
+  useLayoutStore((state) => ({
+    scenePanelWidth: state.scenePanelWidth,
+    propertiesPanelWidth: state.propertiesPanelWidth,
+    statusBarVisible: state.statusBarVisible,
+  }));
+
+/**
+ * usePanelActions - Panel sizing action selectors
+ */
+export const usePanelActions = () =>
+  useLayoutStore((state) => ({
+    setScenePanelWidth: state.setScenePanelWidth,
+    setPropertiesPanelWidth: state.setPropertiesPanelWidth,
+    toggleStatusBar: state.toggleStatusBar,
+  }));
+
+/**
+ * useStatusState - Status information state selectors
+ */
+export const useStatusState = () =>
+  useLayoutStore((state) => ({
+    mousePosition: state.mousePosition,
+    selectionCount: state.selectionCount,
+  }));
+
+/**
+ * useStatusActions - Status update action selectors
+ */
+export const useStatusActions = () =>
+  useLayoutStore((state) => ({
+    setMousePosition: state.setMousePosition,
+    setSelectionCount: state.setSelectionCount,
+  }));
