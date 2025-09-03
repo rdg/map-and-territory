@@ -1,63 +1,50 @@
 import React from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 
-export interface Option<T extends string | number = string> {
-  value: T;
+export interface SelectOption {
+  value: string;
   label: string;
 }
 
-export interface SelectFieldProps<T extends string | number = string> {
+export interface SelectFieldProps {
   id?: string;
   label?: string;
-  value: T;
-  options: ReadonlyArray<Option<T>>;
-  onChange?: (value: T) => void;
-  placeholder?: string;
-  readOnly?: boolean; // when true, disabled and no change callbacks
+  value: string;
+  options: SelectOption[];
+  onChange?: (value: string) => void;
   className?: string;
 }
 
-export function SelectField<T extends string | number = string>({
-  id,
-  label,
-  value,
-  options,
-  onChange,
-  placeholder,
-  readOnly,
-  className,
-}: SelectFieldProps<T>) {
-  const selectId = id ?? React.useId();
-
+export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, options, onChange, className }) => {
+  const buttonId = id ?? React.useId();
+  const current = options.find((o) => o.value === value) ?? options[0];
   return (
     <div className={cn('flex flex-col gap-1', className)}>
-      {label ? (
-        <label htmlFor={selectId} className="text-xs text-foreground">
-          {label}
-        </label>
-      ) : null}
-      <select
-        id={selectId}
-        className={cn(
-          'h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm outline-none',
-          'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
-          'disabled:cursor-not-allowed disabled:opacity-50'
-        )}
-        value={String(value)}
-        onChange={readOnly ? undefined : (e) => {
-          const v = options.find(o => String(o.value) === e.target.value)?.value;
-          if (v !== undefined && onChange) onChange(v as T);
-        }}
-        disabled={!!readOnly}
-      >
-        {placeholder ? <option value="" disabled hidden>{placeholder}</option> : null}
-        {options.map((o) => (
-          <option key={String(o.value)} value={String(o.value)}>{o.label}</option>
-        ))}
-      </select>
+      {label ? <label htmlFor={buttonId} className="text-xs text-foreground">{label}</label> : null}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button id={buttonId} variant="outline" className="justify-between h-9 px-3 text-sm">
+            <span>{current?.label ?? value}</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="min-w-[10rem]">
+          {options.map((opt) => (
+            <DropdownMenuItem key={opt.value} onClick={() => onChange?.(opt.value)} aria-label={opt.label}>
+              {opt.label}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
-}
+};
 
 export default SelectField;
 

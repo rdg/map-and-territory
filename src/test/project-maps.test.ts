@@ -11,6 +11,10 @@ describe('Project Store Maps', () => {
     const id = useProjectStore.getState().addMap({ name: 'Map 1', description: '' });
     expect(useProjectStore.getState().current?.maps.length).toBe(1);
     expect(useProjectStore.getState().current?.activeMapId).toBe(id);
+    const m = useProjectStore.getState().current!.maps[0];
+    expect(m.paper).toBeTruthy();
+    expect(m.paper.aspect).toBe('16:10');
+    expect(m.paper.color).toBeTypeOf('string');
   });
 
   it('renames and deletes a map', () => {

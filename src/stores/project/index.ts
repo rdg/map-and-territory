@@ -6,7 +6,13 @@ export interface Project {
   version: number;
   name: string;
   description?: string;
-  maps: Array<{ id: string; name: string; description?: string; visible: boolean }>;
+  maps: Array<{
+    id: string;
+    name: string;
+    description?: string;
+    visible: boolean;
+    paper: { aspect: 'square' | '4:3' | '16:10'; color: string };
+  }>;
   activeMapId: string | null;
 }
 
@@ -24,6 +30,8 @@ interface ProjectStoreState {
   setMapDescription: (id: string, description: string) => void;
   deleteMap: (id: string) => void;
   setMapVisibility: (id: string, visible: boolean) => void;
+  setMapPaperAspect: (id: string, aspect: 'square' | '4:3' | '16:10') => void;
+  setMapPaperColor: (id: string, color: string) => void;
 }
 
 function uuid(): string {
@@ -87,7 +95,10 @@ export const useProjectStore = create<ProjectStoreState>()(
           }
           const next = get().current!;
           const id = uuid();
-          const maps = [...next.maps, { id, name, description, visible: true }];
+          const maps = [
+            ...next.maps,
+            { id, name, description, visible: true, paper: { aspect: '16:10', color: '#ffffff' } },
+          ];
           set({ current: { ...next, maps, activeMapId: id } });
           return id;
         },
@@ -131,6 +142,26 @@ export const useProjectStore = create<ProjectStoreState>()(
             current: {
               ...cur,
               maps: cur.maps.map((m) => (m.id === id ? { ...m, visible } : m)),
+            },
+          });
+        },
+        setMapPaperAspect: (id, aspect) => {
+          const cur = get().current;
+          if (!cur) return;
+          set({
+            current: {
+              ...cur,
+              maps: cur.maps.map((m) => (m.id === id ? { ...m, paper: { ...m.paper, aspect } } : m)),
+            },
+          });
+        },
+        setMapPaperColor: (id, color) => {
+          const cur = get().current;
+          if (!cur) return;
+          set({
+            current: {
+              ...cur,
+              maps: cur.maps.map((m) => (m.id === id ? { ...m, paper: { ...m.paper, color } } : m)),
             },
           });
         },
