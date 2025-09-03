@@ -18,7 +18,8 @@ import { executeCommand } from '@/lib/commands';
 import { getToolbarContributions } from '@/plugin/loader';
 
 // Creative tool icons
-import { PanelLeftOpen, PanelLeftClose, PanelRightOpen, PanelRightClose, FilePlus, Map as MapIcon, Box } from 'lucide-react';
+import { PanelLeftOpen, PanelLeftClose, PanelRightOpen, PanelRightClose } from 'lucide-react';
+import { resolveIcon } from '@/lib/icon-resolver';
 
 // Dynamic toolbar contributions are rendered from the plugin loader
 
@@ -114,14 +115,7 @@ export const AppToolbar: React.FC = () => {
                 <React.Fragment key={`grp:${group.group}`}>
                   {items.map((item, idx) => {
                     const aria = item.label || item.command;
-                    // Icon resolver: lucide:* -> component
-                    let Icon: LucideIcon = FilePlus;
-                    if (item.icon && item.icon.startsWith('lucide:')) {
-                      const name = item.icon.slice('lucide:'.length);
-                      if (name === 'map') Icon = MapIcon as LucideIcon;
-                      else if (name === 'box') Icon = Box as LucideIcon;
-                      else if (name === 'file-plus') Icon = FilePlus as LucideIcon;
-                    }
+                    const Icon = resolveIcon(item.icon);
                     return (
                       <Button
                         key={`${item.pluginId}:${item.group}:${item.command}:${idx}`}
